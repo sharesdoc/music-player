@@ -1,0 +1,38 @@
+# NEUROMIX // GRID 应用配置
+# 涉及机密信息（密钥、密码）请通过环境变量配置，不要写在此文件中
+
+app:
+  name: "NEUROMIX // GRID"
+  version: "1.0.0"
+  host: "0.0.0.0"
+  port: 2510
+  debug: false                    # 生产环境设为 false
+  log_level: "INFO"               # DEBUG / INFO / WARN / ERROR
+
+music:
+  system_music_path: "/var/www/html/downloads/mp3"   # 现有音乐库路径
+  upload_path: "./uploads"                            # 用户上传目录
+  allowed_extensions: ["mp3", "m4a", "flac", "ogg", "wav"]
+  max_file_size_mb: 50                               # 单文件最大MB
+  max_upload_per_user: 1000                          # 每用户最大上传数量
+  chunk_size_kb: 64                                  # 流式传输块大小
+
+security:
+  jwt_expire_minutes: 60          # Access Token 有效期（分钟）
+  refresh_expire_days: 7          # Refresh Token 有效期（天）
+  login_max_attempts: 5           # 最大登录尝试次数
+  login_lockout_minutes: 15       # 锁定时间（分钟）
+  rate_limit_per_minute: 100      # 每IP每分钟最大请求数
+  rate_limit_window_seconds: 60
+
+database:
+  path: "./data/music.db"         # SQLite 数据库路径
+
+ai:
+  # ANTHROPIC_API_KEY 通过环境变量配置
+  model: "claude-haiku-4-5-20251001"   # 用Haiku节省费用
+  lyrics_enabled: true
+  classify_enabled: true
+
+cors:
+  allowed_origins: ["*"]          # 生产环境建议限定具体域名

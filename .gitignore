@@ -1,0 +1,17 @@
+# 真实环境配置（仅提交 *.example 与 env.pro 模板）
+env.loc
+.env
+# 运行时数据
+data/*
+!data/.gitkeep
+log/*
+!log/.gitkeep
+uploads/*
+!uploads/.gitkeep
+.run.pid
+.run.port
+# 构建产物
+dist/
+__pycache__/
+*.pyc
+.DS_Store

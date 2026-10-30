@@ -1,0 +1,11 @@
+fastapi==0.115.0
+uvicorn[standard]>=0.35.0
+python-multipart==0.0.9
+PyJWT[crypto]>=2.10.1
+pyyaml==6.0.2
+aiofiles==24.1.0
+httpx>=0.28.1
+anthropic>=0.34.2
+mutagen==1.47.0
+python-dotenv>=1.1.0
+gunicorn==23.0.0

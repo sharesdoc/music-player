@@ -1,0 +1,2804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NEUROMIX // GRID</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030509;--bg-panel:#060c14;--bg-card:#0a1220;--bg-hover:#0f1e30;--border:#0d2a3d;--border-lit:#1a4a6a;--cyan:#00ffe7;--cyan-dim:#00ffe740;--pink:#ff0080;--pink-dim:#ff008030;--violet:#7b2fff;--violet-dim:#7b2fff30;--text:#b8d4e8;--text-dim:#3a5a72;--text-bright:#e8f4ff;--green:#00ff9d;--orange:#ff7b00;--yellow:#ffd700;--red:#ff2255;--font-mono:'Share Tech Mono',monospace;--font-head:'Orbitron',sans-serif;--font-body:'Rajdhani',sans-serif;--glow-cyan:0 0 10px #00ffe7,0 0 30px #00ffe740;--glow-pink:0 0 10px #ff0080,0 0 30px #ff008040;--glow-viol:0 0 10px #7b2fff,0 0 30px #7b2fff40;--sidebar-w:220px;--right-w:280px;--player-h:90px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px}
+body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);animation:scan 8s linear infinite}
+@keyframes scan{0%{background-position:0 0}100%{background-position:0 100px}}
+#matrix-canvas{position:fixed;top:0;left:0;z-index:0;opacity:.04;pointer-events:none}
+#app{position:relative;z-index:1;display:grid;grid-template-rows:48px 1fr var(--player-h);grid-template-columns:var(--sidebar-w) 1fr var(--right-w);grid-template-areas:"topbar topbar topbar" "sidebar main info" "player player player";height:100vh;width:61.8vw;margin:0 auto}
+#topbar{grid-area:topbar;display:flex;align-items:center;gap:16px;padding:0 16px;background:var(--bg-panel);border-bottom:1px solid var(--border);position:relative;z-index:100}
+.logo{font-family:var(--font-head);font-size:13px;font-weight:900;color:var(--cyan);text-shadow:var(--glow-cyan);letter-spacing:3px;white-space:nowrap;animation:glitch-logo 6s infinite}
+@keyframes glitch-logo{0%,96%,100%{text-shadow:var(--glow-cyan);transform:none}97%{text-shadow:2px 0 var(--pink),-2px 0 var(--violet);transform:skewX(-3deg)}98%{text-shadow:-2px 0 var(--pink),2px 0 var(--cyan);transform:skewX(3deg)}}
+.logo span{color:var(--pink)}
+.topbar-sep{flex:1}
+.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-lit);border-radius:2px;padding:4px 10px;transition:border-color .2s}
+.search-wrap:focus-within{border-color:var(--cyan);box-shadow:0 0 8px var(--cyan-dim)}
+.search-wrap input{background:none;border:none;outline:none;color:var(--text-bright);font-family:var(--font-mono);font-size:12px;width:200px}
+.search-wrap input::placeholder{color:var(--text-dim)}
+.user-zone{display:flex;align-items:center;gap:8px}
+.credit-badge{font-family:var(--font-mono);font-size:11px;color:var(--green);border:1px solid var(--green);padding:0 10px;height:28px;line-height:26px;border-radius:2px;text-shadow:0 0 6px var(--green);white-space:nowrap;box-sizing:border-box}
+.btn-ghost{background:none;border:1px solid var(--border-lit);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:0 12px;height:28px;line-height:26px;cursor:pointer;border-radius:2px;letter-spacing:1px;transition:all .2s;white-space:nowrap;box-sizing:border-box}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 8px var(--cyan-dim)}
+.btn-play-mode[data-mode="single"]{color:var(--orange);border-color:rgba(255,140,0,.4)}.btn-play-mode[data-mode="single"]:hover{color:var(--orange) !important;border-color:var(--orange) !important;box-shadow:0 0 8px rgba(255,140,0,.5) !important}.btn-play-mode[data-mode="random"]{color:var(--cyan);border-color:rgba(0,255,255,.3)}
+.btn-primary{background:var(--cyan);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;padding:0 14px;height:28px;line-height:28px;cursor:pointer;border-radius:2px;letter-spacing:1px;font-weight:bold;transition:all .2s;white-space:nowrap;box-sizing:border-box}
+.btn-primary:hover{box-shadow:var(--glow-cyan)}
+.btn-danger{background:none;border:1px solid var(--pink);color:var(--pink);font-family:var(--font-mono);font-size:11px;padding:0 12px;height:28px;line-height:26px;cursor:pointer;border-radius:2px;letter-spacing:1px;transition:all .2s;white-space:nowrap;box-sizing:border-box}
+.btn-danger:hover{box-shadow:var(--glow-pink)}
+#sidebar{grid-area:sidebar;background:var(--bg-panel);border-right:1px solid var(--border);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-lit) transparent}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border-lit)}
+.nav-section{padding:12px 0}
+.nav-label{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;padding:6px 16px 4px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;border-left:2px solid transparent}
+.nav-item:hover{background:var(--bg-hover);color:var(--cyan)}
+.nav-item.active{color:var(--cyan);border-left-color:var(--cyan);background:var(--cyan-dim)}
+.nav-item .icon{width:16px;text-align:center;opacity:.7}
+.nav-badge{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);background:var(--bg-card);padding:1px 5px;border-radius:2px}
+.nav-divider{height:1px;background:var(--border);margin:6px 16px}
+#main{grid-area:main;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);position:relative}
+#main-bg-layer{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+#visualizer-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+#main-bg-layer img{width:100%;height:100%;object-fit:contain;object-position:center;position:absolute;inset:0;opacity:0;z-index:1;transition:opacity 1.6s ease,transform 1.6s ease,filter 1.6s ease;transform:scale(1);filter:blur(0)}
+#main-bg-layer img.active{opacity:1}
+/* 转场效果 */
+#main-bg-layer.fx-fade img{transition:opacity 1.6s ease}
+#main-bg-layer.fx-slide img{transition:opacity 1.2s ease,transform 1.2s ease}
+#main-bg-layer.fx-slide img.slide-out{transform:translateX(-100%);opacity:0}
+#main-bg-layer.fx-slide img.slide-in{transform:translateX(100%);opacity:0}
+#main-bg-layer.fx-slide img.active{transform:translateX(0);opacity:1}
+#main-bg-layer.fx-zoom img{transition:opacity 1.4s ease,transform 1.4s ease}
+#main-bg-layer.fx-zoom img.zoom-out{transform:scale(1.3);opacity:0}
+#main-bg-layer.fx-zoom img.active{transform:scale(1);opacity:1}
+#main-bg-layer.fx-blur img{transition:opacity 1.4s ease,filter 1.4s ease}
+#main-bg-layer.fx-blur img.blur-out{filter:blur(20px);opacity:0}
+#main-bg-layer.fx-blur img.active{filter:blur(0);opacity:1}
+#main-bg-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,5,9,.85) 0%,rgba(6,12,20,.72) 50%,rgba(3,5,9,.88) 100%);z-index:2}
+.main-header,.filter-bar,.song-list,#admin-view{position:relative;z-index:3}
+.main-header{padding:14px 20px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.main-title{font-family:var(--font-head);font-size:12px;color:var(--cyan);letter-spacing:3px}
+.main-subtitle{color:var(--text-dim);font-size:12px;font-family:var(--font-mono)}
+.main-actions{margin-left:auto;display:flex;gap:8px}
+.filter-bar{display:flex;gap:8px;padding:10px 20px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.filter-chip:hover{border-color:var(--text-dim);color:var(--text)}
+.filter-chip.active{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan)}
+.song-list{flex:1;overflow-y:auto;padding:8px 0}
+.song-list.pl-mode{overflow:hidden;padding:0}
+.song-list::-webkit-scrollbar{width:4px}
+.song-list::-webkit-scrollbar-thumb{background:var(--border-lit)}
+.song-row{display:grid;grid-template-columns:36px 1fr 100px 52px 64px 76px;align-items:center;padding:0 20px;height:48px;cursor:pointer;transition:background .15s;border-bottom:1px solid transparent}
+.song-row:hover{background:var(--bg-hover);border-bottom-color:var(--border)}
+.song-row.playing{background:none;border-bottom-color:transparent}
+.song-row.playing .song-title{color:var(--cyan);text-shadow:0 0 8px var(--cyan-dim)}
+.song-num{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-align:center}
+.song-info{overflow:hidden}
+.song-title{font-size:13px;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-artist{font-size:11px;color:var(--text-dim);font-family:var(--font-mono)}
+.song-category{font-family:var(--font-mono);font-size:10px;color:var(--violet);border:1px solid var(--violet);padding:1px 6px;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.song-duration{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-align:right}
+.song-actions{display:flex;justify-content:flex-end;gap:6px}
+.song-action-btn{background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:13px;padding:4px;transition:color .15s;border-radius:2px}
+.song-action-btn:hover{color:var(--cyan)}
+.song-action-btn.del:hover{color:var(--red)}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:12px}
+.empty-hint{color:var(--text-dim);font-family:var(--font-mono);font-size:11px}
+.empty-state .icon{font-size:40px;opacity:.3}
+.empty-state p{color:var(--text-dim);font-family:var(--font-mono);font-size:12px}
+#info-panel{grid-area:info;background:var(--bg-panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.panel-section{border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-section-title{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;padding:10px 14px 6px;text-transform:uppercase}
+.credit-zone{padding:8px 14px 12px}
+.credit-row{display:flex;justify-content:space-between;margin-bottom:6px}
+.credit-label{font-size:12px;color:var(--text-dim)}
+.credit-val{font-family:var(--font-mono);font-size:13px;color:var(--text-bright)}
+.credit-bar-wrap{background:var(--bg-card);border-radius:2px;height:4px;margin-top:4px}
+.credit-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--violet));transition:width .5s ease}
+.btn-upload{width:100%;background:none;border:1px dashed var(--cyan);color:var(--cyan);font-family:var(--font-mono);font-size:11px;padding:8px;cursor:pointer;border-radius:2px;letter-spacing:2px;transition:all .2s;margin-top:10px}
+.btn-upload:hover{background:var(--cyan-dim);box-shadow:0 0 12px var(--cyan-dim)}
+.timer-zone{padding:8px 14px 12px}
+.timer-display{font-family:var(--font-head);font-size:22px;color:var(--cyan);text-align:center;text-shadow:var(--glow-cyan);letter-spacing:4px;padding:6px 0}
+.timer-display.running{animation:pulse-glow 1s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{text-shadow:var(--glow-cyan)}50%{text-shadow:0 0 20px var(--cyan),0 0 60px var(--cyan-dim)}}
+.timer-presets{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.timer-btn{flex:1;min-width:50px;background:var(--bg-card);border:1px solid var(--border-lit);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;padding:5px 0;cursor:pointer;border-radius:2px;transition:all .15s;letter-spacing:1px}
+.timer-btn:hover,.timer-btn.active{border-color:var(--cyan);color:var(--cyan)}
+#player{grid-area:player;background:var(--bg-panel);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 16px;position:relative}
+#progress-bar-wrap{position:absolute;top:0;left:0;right:0;height:3px;cursor:pointer;z-index:10}
+#progress-bar-wrap:hover{height:6px;top:-3px}
+#progress-bar{height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));position:relative;pointer-events:none;box-shadow:0 0 8px var(--cyan)}
+#progress-bar::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:var(--glow-cyan)}
+.now-playing{display:flex;align-items:center;gap:12px;min-width:200px;max-width:260px}
+.np-art{width:52px;height:52px;border-radius:4px;background:var(--bg-card);border:1px solid var(--border-lit);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;position:relative;overflow:hidden}
+.np-art.playing::after{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg,var(--cyan-dim),transparent,var(--violet-dim),transparent);animation:spin 4s linear infinite;border-radius:50%}
+@keyframes spin{to{transform:rotate(360deg)}}
+.np-title{font-size:13px;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.np-artist{font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+.controls{display:flex;align-items:center;gap:8px;flex:1;justify-content:center}
+.ctrl-btn{background:none;border:none;cursor:pointer;color:var(--text);font-size:18px;padding:8px;transition:all .15s;border-radius:4px}
+.ctrl-btn:hover{color:var(--cyan);text-shadow:var(--glow-cyan)}
+.ctrl-btn.play-btn{width:42px;height:42px;border-radius:50%;border:2px solid var(--cyan);color:var(--cyan);font-size:16px;display:flex;align-items:center;justify-content:center}
+.ctrl-btn.play-btn:hover{box-shadow:var(--glow-cyan)}
+.player-right{display:flex;align-items:center;gap:12px;min-width:200px;justify-content:flex-end}
+.time-display{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);white-space:nowrap}
+.volume-wrap{display:flex;align-items:center;gap:6px}
+.volume-icon{color:var(--text-dim);font-size:14px;cursor:pointer}
+.volume-wrap input[type=range]{-webkit-appearance:none;width:80px;height:3px;background:var(--border-lit);border-radius:2px;cursor:pointer}
+.volume-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;background:var(--cyan);border-radius:50%;box-shadow:0 0 4px var(--cyan)}
+.modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(3,5,9,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg-panel);border:1px solid var(--border-lit);border-radius:4px;padding:28px;min-width:340px;max-width:440px;width:90%;box-shadow:0 0 40px rgba(0,255,231,.1);transform:translateY(20px);transition:transform .3s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-family:var(--font-head);font-size:14px;color:var(--cyan);letter-spacing:3px;margin-bottom:24px;text-align:center;text-shadow:var(--glow-cyan)}
+.form-group{margin-bottom:16px}
+.form-label{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;display:block;margin-bottom:6px;text-transform:uppercase}
+.form-input{width:100%;background:var(--bg-card);border:1px solid var(--border-lit);color:var(--text-bright);font-family:var(--font-mono);font-size:13px;padding:9px 12px;border-radius:2px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--cyan);box-shadow:0 0 8px var(--cyan-dim)}
+.form-error{color:var(--red);font-family:var(--font-mono);font-size:11px;margin-top:4px}
+.form-actions{display:flex;gap:10px;margin-top:20px}
+.form-actions .btn-primary{flex:1;height:38px;line-height:38px;padding:0 14px;font-size:12px}
+.form-actions .btn-ghost{height:38px;line-height:36px;padding:0 16px}
+.modal-switch{text-align:center;margin-top:14px;font-size:12px;color:var(--text-dim)}
+.modal-switch a{color:var(--cyan);cursor:pointer;text-decoration:none}
+.modal-switch a:hover{text-shadow:var(--glow-cyan)}
+.upload-drop-zone{border:2px dashed var(--border-lit);border-radius:4px;padding:30px;text-align:center;transition:all .2s;cursor:pointer}
+.upload-drop-zone:hover,.upload-drop-zone.drag-over{border-color:var(--cyan);background:var(--cyan-dim)}
+.upload-drop-icon{font-size:36px;margin-bottom:10px;opacity:.6}
+.upload-drop-text{font-family:var(--font-mono);font-size:12px;color:var(--text-dim)}
+.upload-drop-sub{font-size:11px;color:var(--text-dim);margin-top:4px}
+.upload-file-list{margin-top:16px;max-height:120px;overflow-y:auto}
+.upload-file-item{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg-card);border-radius:2px;margin-bottom:4px;font-size:12px}
+.upload-file-size{font-family:var(--font-mono);color:var(--text-dim);font-size:11px}
+.upload-progress{margin-top:12px}
+.upload-progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.upload-progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .3s}
+#notify-bar{position:fixed;top:56px;right:16px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.notify{background:var(--bg-card);border:1px solid var(--border-lit);border-radius:3px;padding:10px 16px;font-family:var(--font-mono);font-size:12px;color:var(--text-bright);max-width:280px;animation:notify-in .3s ease;pointer-events:auto;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.notify.success{border-color:var(--green);color:var(--green)}
+.notify.error{border-color:var(--red);color:var(--red)}
+.notify.info{border-color:var(--cyan);color:var(--cyan)}
+@keyframes notify-in{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border-lit);border-top-color:var(--cyan);border-radius:50%;animation:spin .6s linear infinite}
+.lang-toggle{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);border:1px solid var(--border);padding:0 10px;height:28px;line-height:26px;cursor:pointer;border-radius:2px;background:none;letter-spacing:1px;transition:all .15s;white-space:nowrap;box-sizing:border-box}
+.lang-toggle:hover{border-color:var(--cyan);color:var(--cyan)}
+.playlist-list{max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-lit) transparent}
+.playlist-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.playlist-name{font-size:13px;color:var(--text-bright)}
+.playlist-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px}
+.playlist-play-btn{background:none;border:1px solid var(--border-lit);color:var(--text-dim);font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;font-family:var(--font-mono);transition:all .15s;white-space:nowrap}
+.playlist-play-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.nav-pl-add{margin-left:auto;background:none;border:1px solid var(--border-lit);color:var(--text-dim);font-family:var(--font-mono);font-size:14px;width:20px;height:20px;cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1;flex-shrink:0}
+.nav-pl-add:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 6px var(--cyan-dim)}
+.pl-split{display:flex;height:100%;overflow:hidden}
+.pl-list-pane{width:200px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;scrollbar-width:thin;scrollbar-color:var(--border-lit) transparent}
+.pl-list-pane::-webkit-scrollbar{width:4px}
+.pl-list-pane::-webkit-scrollbar-thumb{background:var(--border-lit)}
+.pl-songs-pane{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.pl-songs-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-lit) transparent}
+.pl-songs-scroll::-webkit-scrollbar{width:4px}
+.pl-songs-scroll::-webkit-scrollbar-thumb{background:var(--border-lit)}
+.pl-item{padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;border-left:2px solid transparent}
+.pl-item:hover{background:var(--bg-hover)}
+.pl-item.active{background:var(--cyan-dim);border-left-color:var(--cyan)}
+.pl-item-name{font-size:13px;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-item-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px}
+.pl-songs-header{padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.pl-songs-row{display:grid;grid-template-columns:28px 1fr 70px 60px;align-items:center;padding:0 16px;height:44px;cursor:pointer;transition:background .15s;border-bottom:1px solid transparent}
+.pl-songs-row:hover{background:var(--bg-hover);border-bottom-color:var(--border)}
+.pl-songs-row.playing{background:none;border-bottom-color:transparent}
+.pl-songs-row.playing .song-title{color:var(--cyan);text-shadow:0 0 8px var(--cyan-dim)}
+.song-plays{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);text-align:right;white-space:nowrap}
+.song-plays b{color:var(--orange)}
+.main-ctrl-group{display:flex;align-items:center;gap:2px;margin-right:6px}
+.main-ctrl-btn{background:none;border:none;cursor:pointer;color:var(--text);font-size:14px;padding:5px;transition:all .15s;border-radius:4px;line-height:1}
+.main-ctrl-btn:hover{color:var(--cyan);text-shadow:var(--glow-cyan)}
+.main-ctrl-btn.play-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--cyan);color:var(--cyan);font-size:12px;display:flex;align-items:center;justify-content:center;padding:0}
+.main-ctrl-btn.play-btn:hover{box-shadow:var(--glow-cyan)}
+.user-label{font-family:var(--font-mono);font-size:11px;color:var(--cyan);letter-spacing:1px;padding:0 10px;height:28px;line-height:26px;border:1px solid var(--cyan-dim);border-radius:2px;white-space:nowrap;box-sizing:border-box;display:inline-block}
+/* ── 管理后台 ──────────────────────────────────────────── */
+#admin-view{display:none;flex-direction:column;height:100%;overflow:hidden}
+#admin-view.active{display:flex}
+.admin-header-bar{padding:14px 20px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--bg-panel)}
+.admin-header-bar .main-title{animation:glitch-logo 8s infinite}
+.admin-tabs{display:flex;gap:8px;padding:10px 20px;flex-shrink:0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tab{background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.admin-tab:hover{border-color:var(--text-dim);color:var(--text)}
+.admin-tab.active{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan)}
+.admin-pane{display:none;flex:1;overflow-y:auto;padding:16px 20px}
+.admin-pane.active{display:block}
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg-panel);border:1px solid var(--border-lit);border-radius:3px;padding:14px 12px;text-align:center;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan-dim)}
+.stat-card .sc-val{font-family:var(--font-head);font-size:24px;color:var(--cyan);text-shadow:var(--glow-cyan)}
+.stat-card .sc-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-top:4px}
+.stat-card.warn .sc-val{color:var(--yellow);text-shadow:0 0 10px #ffd70080}
+.stat-card.warn::before{background:var(--yellow)}
+.stat-card.ok .sc-val{color:var(--green)}
+.stat-card.ok::before{background:var(--green)}
+.stat-card.err .sc-val{color:var(--pink)}
+.stat-card.err::before{background:var(--pink)}
+.admin-section{margin-bottom:20px}
+.admin-section-title{font-family:var(--font-mono);font-size:10px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.admin-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
+.admin-table th{color:var(--text-dim);font-size:10px;letter-spacing:1px;padding:6px 8px;text-align:left;border-bottom:1px solid var(--border-lit);white-space:nowrap;text-transform:uppercase}
+.admin-table td{padding:7px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.admin-table tr:hover td{background:rgba(0,255,231,.04)}
+.admin-table tr.pending-row>td:first-child{border-left:2px solid rgba(255,215,0,.5)}
+.badge{display:inline-block;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:2px}
+.badge-pending{background:rgba(255,215,0,.12);color:var(--yellow);border:1px solid rgba(255,215,0,.3)}
+.badge-approved{background:rgba(0,255,100,.1);color:#0f9;border:1px solid rgba(0,255,100,.25)}
+.badge-rejected{background:rgba(255,60,100,.1);color:var(--pink);border:1px solid rgba(255,60,100,.25)}
+.admin-btn{background:none;border:1px solid var(--border-lit);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;transition:all .15s}
+.admin-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.admin-btn.approve{border-color:rgba(0,255,100,.3);color:#0f9}
+.admin-btn.approve:hover{border-color:#0f9;box-shadow:0 0 6px rgba(0,255,100,.3)}
+.admin-btn.reject{border-color:rgba(255,60,100,.3);color:var(--pink)}
+.admin-btn.reject:hover{border-color:var(--pink);box-shadow:var(--glow-pink)}
+.admin-filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.admin-filter-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;padding:4px 12px;cursor:pointer;border-radius:20px;white-space:nowrap;transition:all .15s}
+.admin-filter-btn:hover{border-color:var(--text-dim);color:var(--text)}
+.admin-filter-btn.active{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan)}
+/* 审核模态框 */
+.review-modal{max-width:560px}
+.review-player-wrap{margin:14px 0;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px;display:flex;align-items:center;gap:10px}
+.review-player-wrap audio{flex:1;height:30px;accent-color:var(--cyan)}
+.review-song-meta{font-family:var(--font-mono);font-size:11px;line-height:1.8;margin-bottom:10px}
+.review-song-meta .rm-label{color:var(--text-dim);font-size:10px}
+.review-actions-row{display:flex;gap:10px;margin-bottom:10px}
+.review-radio-label{display:flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-mono);font-size:11px;padding:6px 12px;border:1px solid var(--border-lit);border-radius:3px;transition:all .2s}
+.review-radio-label:has(input:checked).approve{border-color:#0f9;color:#0f9;background:rgba(0,255,100,.07)}
+.review-radio-label:has(input:checked).reject{border-color:var(--pink);color:var(--pink);background:rgba(255,60,100,.07)}
+.review-notes{width:100%;background:var(--bg);border:1px solid var(--border-lit);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:8px;border-radius:3px;resize:vertical;min-height:60px;margin-bottom:10px;box-sizing:border-box}
+.review-notes:focus{outline:none;border-color:var(--cyan)}
+.nav-item.admin-nav{border-top:1px solid var(--border);margin-top:8px;padding-top:8px}
+/* ── 背景图模态 ──────────────────────────────────────────── */
+.bg-thumb-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px;max-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-lit) transparent}
+.bg-thumb-item{position:relative;border:2px solid var(--border);border-radius:4px;overflow:hidden;aspect-ratio:16/9;cursor:pointer;transition:all .2s}
+.bg-thumb-item:hover{border-color:var(--cyan)}
+.bg-thumb-item.selected{border-color:var(--cyan);box-shadow:0 0 10px var(--cyan-dim)}
+.bg-thumb-item img{width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:var(--bg)}
+.bg-thumb-del{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(255,34,85,.85);border:none;color:#fff;font-size:11px;line-height:20px;text-align:center;border-radius:2px;cursor:pointer;opacity:0;transition:opacity .2s}
+.bg-thumb-item:hover .bg-thumb-del{opacity:1}
+.bg-thumb-check{position:absolute;bottom:3px;left:3px;width:18px;height:18px;background:var(--cyan);color:var(--bg);font-size:10px;line-height:18px;text-align:center;border-radius:2px;display:none}
+.bg-thumb-item.selected .bg-thumb-check{display:block}
+.bg-mode-row{display:flex;align-items:center;gap:10px;margin-top:14px}
+.bg-mode-row label{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:1px}
+.bg-mode-row select{background:var(--bg-card);border:1px solid var(--border-lit);color:var(--text-bright);font-family:var(--font-mono);font-size:12px;padding:4px 8px;border-radius:2px;outline:none}
+.bg-mode-row select:focus{border-color:var(--cyan)}
+.bg-count{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:8px}
+@media(max-width:768px){:root{--sidebar-w:0px;--right-w:0px}#app{grid-template-rows:48px 1fr 200px var(--player-h);grid-template-columns:1fr;grid-template-areas:"topbar" "main" "info" "player";width:100%}#sidebar{display:none}#info-panel{border-left:none;border-top:1px solid var(--border)}.now-playing{min-width:120px;max-width:150px}.volume-wrap{display:none}.search-wrap{display:none}.song-row{grid-template-columns:30px 1fr 60px}.song-category,.song-duration,.song-plays{display:none}.main-ctrl-group,.btn-sort-plays,.btn-play-mode,#btn-background{display:none}}
+</style>
+</head>
+<body>
+<canvas id="matrix-canvas"></canvas>
+<div id="notify-bar"></div>
+<div id="app">
+  <div id="topbar">
+    <div class="logo">NEUR<span>O</span>MIX <span>//</span> GRID</div>
+    <div class="search-wrap">
+      <span style="color:var(--text-dim);font-size:12px">⌕</span>
+      <input type="text" id="search-input" data-i18n-ph="topbar.search" placeholder="SEARCH MUSIC..." autocomplete="off">
+    </div>
+    <div class="topbar-sep"></div>
+    <button class="lang-toggle" id="btn-lang" title="Switch Language / 切换语言">中文</button>
+    <div class="user-zone" id="user-zone">
+      <span class="credit-badge" id="credit-badge" style="display:none">▲0 ▼0</span>
+      <span class="user-label" id="user-label" style="display:none"></span>
+      <button class="btn-ghost" id="btn-login" data-i18n="topbar.login">LOGIN</button>
+      <button class="btn-primary" id="btn-register" data-i18n="topbar.register">REGISTER</button>
+      <button class="btn-ghost" id="btn-upload-top" style="display:none" data-i18n="topbar.upload">⇧ UPLOAD</button>
+      <button class="btn-danger" id="btn-logout" style="display:none" data-i18n="topbar.exit">EXIT</button>
+    </div>
+  </div>
+  <div id="sidebar">
+    <div class="nav-section">
+      <div class="nav-label" data-i18n="nav.navigate">// NAVIGATE</div>
+      <div class="nav-item active" data-view="all"><span class="icon">◈</span><span data-i18n="nav.all">ALL MUSIC</span><span class="nav-badge" id="total-count">-</span></div>
+      <div class="nav-item" data-view="hot"><span class="icon">◉</span><span data-i18n="nav.hot">HOT CHARTS</span></div>
+      <div class="nav-item" data-view="history"><span class="icon">◷</span><span data-i18n="nav.history">HISTORY</span></div>
+      <div class="nav-item" data-view="playlist"><span class="icon">≡</span><span data-i18n="nav.playlist">MY LISTS</span><button class="nav-pl-add" id="btn-nav-new-playlist" data-i18n-title="nav.new-pl" title="New Playlist">+</button></div>
+      <div class="nav-item admin-nav" id="nav-admin" data-view="admin" style="display:none"><span class="icon">⬡</span><span data-i18n="nav.admin">ADMIN</span></div>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+      <div class="nav-label" data-i18n="nav.categories">// CATEGORIES</div>
+      <div id="cat-nav-list"></div>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+      <div class="nav-label" data-i18n="nav.artists">// HOT ARTISTS</div>
+      <div id="artist-nav-list"></div>
+    </div>
+  </div>
+  <div id="main">
+    <div id="main-bg-layer" style="display:none"><canvas id="visualizer-canvas"></canvas><div id="main-bg-overlay"></div></div>
+    <div class="main-header">
+      <div>
+        <div class="main-title" id="main-title">ALL TRACKS</div>
+        <div class="main-subtitle" id="main-subtitle">-- / --</div>
+      </div>
+      <div class="main-actions">
+        <div class="main-ctrl-group">
+          <button class="main-ctrl-btn" id="main-btn-prev" data-i18n-title="main.prev" title="Previous">⏮</button>
+          <button class="main-ctrl-btn play-btn" id="main-btn-play" data-i18n-title="main.play" title="Play / Pause">▶</button>
+          <button class="main-ctrl-btn" id="main-btn-next" data-i18n-title="main.next" title="Next">⏭</button>
+        </div>
+        <button class="btn-ghost" id="btn-shuffle" data-i18n="btn.shuffle">⇌ SHUFFLE</button>
+        <button class="btn-ghost btn-sort-plays" id="btn-sort-plays" data-i18n="sort.default">↕ PLAYS</button>
+        <button class="btn-ghost btn-play-mode" id="btn-play-mode" data-mode="random">⇌ RND</button>
+        <button class="btn-ghost" id="btn-background" data-i18n="btn.bg">⬡ BG</button>
+        <button class="btn-ghost" id="btn-to-admin" data-i18n="nav.admin" style="display:none" onclick="switchView('admin')">⬡ ADMIN</button>
+      </div>
+    </div>
+    <div class="filter-bar" id="filter-bar" style="display:none"></div>
+    <!-- 管理后台视图 -->
+    <div id="admin-view">
+      <div class="admin-header-bar">
+        <div>
+          <div class="main-title">⬡ ADMIN // SYSTEM</div>
+          <div class="main-subtitle" id="admin-subtitle">-- CONTROL PANEL --</div>
+        </div>
+        <div class="main-actions">
+          <button class="btn-ghost" id="btn-admin-back" data-i18n="admin.back" onclick="switchView('all')">♪ MUSIC</button>
+        </div>
+      </div>
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-pane="stats" data-i18n="admin.tab.stats">统计</button>
+        <button class="admin-tab" data-pane="review" data-i18n="admin.tab.review">审核</button>
+        <button class="admin-tab" data-pane="cats" data-i18n="admin.tab.cats">分类</button>
+        <button class="admin-tab" data-pane="users" data-i18n="admin.tab.users">用户</button>
+        <button class="admin-tab" data-pane="del-req" data-i18n="admin.tab.del-req">删除申请</button>
+        <button class="admin-tab" data-pane="log-upload" data-i18n="admin.tab.upload-log">上传日志</button>
+        <button class="admin-tab" data-pane="log-dl" data-i18n="admin.tab.dl-log">下载日志</button>
+      </div>
+      <!-- 统计概览 -->
+      <div id="admin-pane-stats" class="admin-pane active">
+        <div class="stat-cards" id="admin-stat-cards"></div>
+        <div class="admin-section"><div class="admin-section-title" data-i18n="admin.cats">各分类歌曲数</div><div id="admin-cat-table"></div></div>
+        <div class="admin-section"><div class="admin-section-title" data-i18n="admin.users-stats">用户数据</div><div id="admin-user-stats-table"></div></div>
+      </div>
+      <!-- 审核队列 -->
+      <div id="admin-pane-review" class="admin-pane">
+        <div class="admin-filter-bar">
+          <button class="admin-filter-btn active" data-status="pending" data-i18n="admin.filter.pending">待审核</button>
+          <button class="admin-filter-btn" data-status="all" data-i18n="admin.filter.all">全部</button>
+          <button class="admin-filter-btn" data-status="approved" data-i18n="admin.filter.approved">已通过</button>
+          <button class="admin-filter-btn" data-status="rejected" data-i18n="admin.filter.rejected">已拒绝</button>
+        </div>
+        <div id="admin-review-table"></div>
+      </div>
+      <!-- 分类管理 -->
+      <div id="admin-pane-cats" class="admin-pane">
+        <div style="margin-bottom:12px;display:flex;gap:8px">
+          <input type="text" class="form-input" id="admin-new-cat-name" placeholder="New category name..." style="flex:1;font-size:12px">
+          <input type="text" class="form-input" id="admin-new-cat-desc" placeholder="Description..." style="flex:1;font-size:12px">
+          <button class="btn-primary" id="btn-admin-create-cat" style="white-space:nowrap">+ CREATE</button>
+        </div>
+        <div id="admin-cats-table"></div>
+      </div>
+      <!-- 用户管理 -->
+      <div id="admin-pane-users" class="admin-pane"><div id="admin-users-table"></div></div>
+      <!-- 删除申请 -->
+      <div id="admin-pane-del-req" class="admin-pane"><div id="admin-del-req-table"></div></div>
+      <!-- 上传日志 -->
+      <div id="admin-pane-log-upload" class="admin-pane"><div id="admin-upload-log-table"></div></div>
+      <!-- 下载日志 -->
+      <div id="admin-pane-log-dl" class="admin-pane"><div id="admin-dl-log-table"></div></div>
+    </div>
+
+    <div class="song-list" id="song-list-view">
+      <div class="empty-state"><div class="icon">◈</div><p data-i18n="view.loading">LOADING GRID...</p></div>
+    </div>
+  </div>
+  <div id="info-panel">
+    <div class="panel-section">
+      <div class="panel-section-title" data-i18n="credit.title">// ECONOMY</div>
+      <div class="credit-zone">
+        <div class="credit-row"><span class="credit-label" data-i18n="credit.uploaded">Uploaded</span><span class="credit-val" id="stat-upload">0</span></div>
+        <div class="credit-row"><span class="credit-label" data-i18n="credit.quota">Download Quota</span><span class="credit-val" id="stat-quota">0</span></div>
+        <div class="credit-row"><span class="credit-label" data-i18n="credit.remaining">Remaining</span><span class="credit-val" id="stat-remain">0</span></div>
+        <div class="credit-bar-wrap"><div class="credit-bar" id="credit-bar" style="width:0%"></div></div>
+        <button class="btn-upload" id="btn-upload-panel" data-i18n="credit.upload-btn">+ UPLOAD TRACK</button>
+      </div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title" data-i18n="timer.title">// TIMER</div>
+      <div class="timer-zone">
+        <div class="timer-display" id="timer-display">--:--</div>
+        <div class="timer-presets">
+          <button class="timer-btn" data-min="30">30m</button>
+          <button class="timer-btn" data-min="60">1h</button>
+          <button class="timer-btn" data-min="120">2h</button>
+          <button class="timer-btn" data-min="0" data-i18n="timer.off">OFF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="player">
+    <div id="progress-bar-wrap"><div id="progress-bar" style="width:0%"></div></div>
+    <div class="now-playing">
+      <div class="np-art" id="np-art">♪</div>
+      <div>
+        <div class="np-title" id="np-title" data-i18n="np.no-track">-- NO TRACK --</div>
+        <div class="np-artist" id="np-artist">NEUROMIX</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn" id="btn-prev">⏮</button>
+      <button class="ctrl-btn play-btn" id="btn-play">▶</button>
+      <button class="ctrl-btn" id="btn-next">⏭</button>
+      <button class="ctrl-btn" id="btn-mode" data-i18n-title="mode.title" title="Random playback">⇌</button>
+    </div>
+    <div class="player-right">
+      <div class="time-display"><span id="time-current">0:00</span> / <span id="time-total">0:00</span></div>
+      <div class="volume-wrap">
+        <span class="volume-icon" id="vol-icon">🔊</span>
+        <input type="range" id="volume-slider" min="0" max="100" value="80">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-login">
+  <div class="modal">
+    <div class="modal-title" data-i18n="login.title">// LOGIN</div>
+    <div class="form-group"><label class="form-label" data-i18n="login.field-user">EMAIL OR USERNAME</label><input type="text" class="form-input" id="login-user" data-i18n-ph="login.ph-user" placeholder="user@grid.net" autocomplete="username"></div>
+    <div class="form-group"><label class="form-label" data-i18n="login.field-pass">PASSWORD</label><input type="password" class="form-input" id="login-pass" data-i18n-ph="login.ph-pass" placeholder="••••••••" autocomplete="current-password"><div class="form-error" id="login-err"></div></div>
+    <div class="form-actions"><button class="btn-ghost" id="login-cancel" data-i18n="login.cancel">CANCEL</button><button class="btn-primary" id="btn-do-login" data-i18n="login.submit">ACCESS</button></div>
+    <div class="modal-switch"><span data-i18n="login.switch">New user? </span><a id="goto-register" data-i18n="login.switch-link">REGISTER HERE</a></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-register">
+  <div class="modal">
+    <div class="modal-title" data-i18n="reg.title">// REGISTER</div>
+    <div class="form-group"><label class="form-label" data-i18n="reg.field-email">EMAIL</label><input type="email" class="form-input" id="reg-email" data-i18n-ph="reg.ph-email" placeholder="user@grid.net" autocomplete="email"></div>
+    <div class="form-group"><label class="form-label" data-i18n="reg.field-user">USERNAME</label><input type="text" class="form-input" id="reg-user" data-i18n-ph="reg.ph-user" placeholder="cyberuser" autocomplete="username"></div>
+    <div class="form-group"><label class="form-label" data-i18n="reg.field-pass">PASSWORD</label><input type="password" class="form-input" id="reg-pass" data-i18n-ph="reg.ph-pass" placeholder="min 6 chars" autocomplete="new-password"></div>
+    <div class="form-group" style="margin-top:8px">
+      <div id="reg-terms-box" style="max-height:120px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);line-height:1.6;margin-bottom:8px;scrollbar-width:thin;scrollbar-color:var(--border-lit) transparent">
+By registering for NEUROMIX // GRID, you agree to the following terms:
+
+1. UPLOAD RIGHTS — You represent that you have the legal right to upload any music file you submit. The platform assumes no liability for copyright claims arising from unauthorized uploads.
+
+2. SHARING CONSENT — By uploading a file, you grant the platform permission to share, classify, and distribute the file to other registered users. The platform may use AI to automatically categorize your uploads.
+
+3. EQUAL EXCHANGE — Each upload earns one download credit. You may download one file from other users for each file you contribute.
+
+4. RIGHT TO DELETE — You may delete your uploaded files at any time. Upon deletion, the platform will immediately remove the file and all associated records. Other users will no longer have access to the deleted file. The platform does not retain copies of deleted files.
+
+5. USER RESPONSIBILITY — You are solely responsible for all legal consequences related to files you upload and share. The platform acts only as an intermediary and bears no liability for user-uploaded content.
+
+6. CONTENT REVIEW — All user uploads are subject to review by platform administrators before being made publicly available. The platform reserves the right to reject or remove any upload.
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--font-mono);font-size:11px;color:var(--text)">
+        <input type="checkbox" id="reg-agree" style="accent-color:var(--cyan);width:16px;height:16px">
+        <span data-i18n="reg.agree">I have read and agree to the Terms of Service</span>
+      </label>
+      <div class="form-error" id="reg-err"></div>
+    </div>
+    <div class="form-actions"><button class="btn-ghost" id="reg-cancel" data-i18n="reg.cancel">CANCEL</button><button class="btn-primary" id="btn-do-register" data-i18n="reg.submit">CREATE</button></div>
+    <div class="modal-switch"><span data-i18n="reg.switch">Have an account? </span><a id="goto-login" data-i18n="reg.switch-link">LOGIN HERE</a></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-upload">
+  <div class="modal">
+    <div class="modal-title" data-i18n="upload.title">// UPLOAD TRACK</div>
+    <input type="file" id="file-input" accept=".mp3,.m4a,.flac,.ogg,.wav" multiple style="display:none">
+    <div class="upload-drop-zone" id="drop-zone">
+      <div class="upload-drop-icon">⇧</div>
+      <div class="upload-drop-text" data-i18n="upload.drop">DRAG & DROP or CLICK TO SELECT</div>
+      <div class="upload-drop-sub" data-i18n="upload.sub">MP3 · M4A · FLAC · OGG · WAV · MAX 50MB</div>
+    </div>
+    <div class="upload-file-list" id="upload-file-list"></div>
+    <div class="upload-progress" id="upload-progress" style="display:none">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-bottom:6px" id="upload-status"></div>
+      <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-fill" style="width:0%"></div></div>
+    </div>
+    <div class="form-error" id="upload-err" style="margin-top:8px"></div>
+    <div class="form-actions" style="margin-top:16px">
+      <button class="btn-ghost" id="upload-cancel" data-i18n="upload.cancel">CANCEL</button>
+      <button class="btn-primary" id="btn-do-upload" data-i18n="upload.submit">TRANSMIT</button>
+    </div>
+    <div data-i18n="upload.hint" style="margin-top:12px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">▲ 1 upload = 1 download credit — share more, get more</div>
+  </div>
+</div>
+
+<!-- Playlist Manager Modal -->
+<div class="modal-overlay" id="modal-playlist">
+  <div class="modal" style="max-width:420px;width:92%">
+    <div class="modal-title" data-i18n="pl.title">// MY PLAYLISTS</div>
+    <div class="playlist-list" id="playlist-list"></div>
+    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:12px">
+      <div style="display:flex;gap:8px">
+        <input type="text" class="form-input" id="new-playlist-name" data-i18n-ph="pl.ph" placeholder="NEW PLAYLIST NAME..." maxlength="50" style="flex:1;font-size:12px">
+        <button class="btn-primary" id="btn-create-playlist" style="white-space:nowrap;padding:6px 14px" data-i18n="pl.create">+ CREATE</button>
+      </div>
+      <div class="form-error" id="playlist-err" style="margin-top:4px"></div>
+    </div>
+    <div class="form-actions" style="margin-top:12px">
+      <button class="btn-ghost" id="playlist-cancel" data-i18n="pl.close">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审核模态框 -->
+<div class="modal-overlay" id="modal-review">
+  <div class="modal review-modal">
+    <div class="modal-title" data-i18n="admin.review.title">// 歌曲审核</div>
+    <div class="review-song-meta" id="review-meta"></div>
+    <div class="review-player-wrap">
+      <audio id="review-audio" controls preload="none"></audio>
+    </div>
+    <div class="review-actions-row">
+      <label class="review-radio-label approve">
+        <input type="radio" name="review-action" value="approve"> <span data-i18n="admin.review.approve">通过</span>
+      </label>
+      <label class="review-radio-label reject">
+        <input type="radio" name="review-action" value="reject"> <span data-i18n="admin.review.reject">拒绝</span>
+      </label>
+    </div>
+    <textarea class="review-notes" id="review-notes" data-i18n-ph="admin.review.notes-ph" placeholder="审核意见（可选）..." maxlength="500"></textarea>
+    <div class="form-error" id="review-err"></div>
+    <div class="form-actions">
+      <button class="btn-ghost" id="review-cancel" data-i18n="admin.review.cancel">取消</button>
+      <button class="btn-primary" id="btn-do-review" data-i18n="admin.review.submit">提交审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- 背景图管理模态 -->
+<div class="modal-overlay" id="modal-background">
+  <div class="modal" style="max-width:61.8vw;width:61.8vw;max-height:61.8vh;overflow-y:auto">
+    <div class="modal-title" data-i18n="bg.title">// BACKGROUND</div>
+    <input type="file" id="bg-file-input" accept=".jpg,.jpeg,.png,.webp,.gif" multiple style="display:none">
+    <div class="upload-drop-zone" id="bg-drop-zone">
+      <div class="upload-drop-icon">⬡</div>
+      <div class="upload-drop-text" data-i18n="bg.drop">DRAG & DROP IMAGES</div>
+      <div class="upload-drop-sub" data-i18n="bg.sub">JPG · PNG · WEBP · GIF · MAX 20MB · UP TO 10</div>
+    </div>
+    <div id="bg-upload-err" class="form-error" style="margin-top:6px"></div>
+    <div class="bg-count" id="bg-count"></div>
+    <div class="bg-thumb-grid" id="bg-thumb-grid"></div>
+    <div class="bg-mode-row">
+      <label data-i18n="bg.mode-label">MODE</label>
+      <select id="bg-mode-select">
+        <option value="single" data-i18n="bg.single">Single</option>
+        <option value="slideshow" data-i18n="bg.slideshow">Slideshow</option>
+      </select>
+      <label id="bg-interval-label" data-i18n="bg.interval">INTERVAL</label>
+      <input type="range" id="bg-interval" min="3" max="30" value="10" style="flex:1;accent-color:var(--cyan)">
+      <span id="bg-interval-val" style="font-family:var(--font-mono);font-size:11px;color:var(--cyan);min-width:26px">10s</span>
+      <label id="bg-fx-label" data-i18n="bg.fx">FX</label>
+      <select id="bg-fx-select">
+        <option value="random">Random</option>
+        <option value="fade">Fade</option>
+        <option value="slide">Slide</option>
+        <option value="zoom">Zoom</option>
+        <option value="blur">Blur</option>
+      </select>
+    </div>
+    <div class="form-actions" style="margin-top:16px">
+      <button class="btn-ghost" id="bg-cancel" data-i18n="bg.cancel">CANCEL</button>
+      <button class="btn-primary" id="btn-bg-apply" data-i18n="bg.apply">APPLY</button>
+      <button class="btn-danger" id="btn-bg-clear" data-i18n="bg.clear">CLEAR</button>
+    </div>
+  </div>
+</div>
+
+<audio id="audio-el" preload="metadata"></audio>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════
+// NEUROMIX // GRID — 前端核心
+// 安全说明：所有用户输入通过 createTextNode/textContent 渲染
+// 禁止直接将 API 返回数据插入 innerHTML（使用 DOM API 构建）
+// ═══════════════════════════════════════════════════════════════
+
+// ── 多语言 (i18n) ────────────────────────────────────────────────
+const LANG = {
+  en: {
+    // nav
+    'nav.all':'ALL MUSIC','nav.hot':'HOT CHARTS','nav.history':'HISTORY','nav.playlist':'MY LISTS',
+    'nav.navigate':'// NAVIGATE','nav.categories':'// CATEGORIES','nav.artists':'// HOT ARTISTS',
+    'nav.new-pl':'New Playlist','nav.admin':'ADMIN',
+    // admin
+    'admin.tab.stats':'STATS','admin.tab.review':'REVIEW','admin.tab.cats':'CATS','admin.tab.users':'USERS','admin.tab.del-req':'DEL REQ',
+    'admin.tab.upload-log':'UPLOADS','admin.tab.dl-log':'DOWNLOADS',
+    'admin.cats':'Songs by Category','admin.users-stats':'User Data',
+    'admin.filter.pending':'PENDING','admin.filter.all':'ALL',
+    'admin.filter.approved':'APPROVED','admin.filter.rejected':'REJECTED',
+    'admin.review.title':'// SONG REVIEW',
+    'admin.review.approve':'Approve','admin.review.reject':'Reject',
+    'admin.review.notes-ph':'Review notes (optional)...','admin.review.cancel':'CANCEL',
+    'admin.review.submit':'SUBMIT',
+    'admin.col.title':'TITLE','admin.col.artist':'ARTIST','admin.col.uploader':'UPLOADER',
+    'admin.col.date':'DATE','admin.col.status':'STATUS','admin.col.action':'ACTION',
+    'admin.col.songs':'SONGS','admin.col.uploads':'UPLOADS','admin.col.credits':'CREDITS',
+    'admin.col.plays':'PLAYS','admin.col.size':'SIZE',
+    'admin.pending-tip':'Pending review','admin.no-data':'No data',
+    'admin.approve-ok':'Approved ✓','admin.reject-ok':'Rejected','admin.back':'♪ MUSIC',
+    // background
+    'btn.bg':'⬡ BG','bg.title':'// BACKGROUND','bg.drop':'DRAG & DROP IMAGES',
+    'bg.sub':'JPG · PNG · WEBP · GIF · MAX 20MB · UP TO 10',
+    'bg.mode-label':'MODE','bg.single':'Single','bg.slideshow':'Slideshow',
+    'bg.interval':'INTERVAL','bg.fx':'FX','bg.cancel':'CANCEL','bg.apply':'APPLY','bg.clear':'CLEAR',
+    'bg.count':'{0}/10 images','bg.deleted':'Background deleted',
+    'bg.applied':'Background applied','bg.cleared':'Background cleared',
+    // credits / economy
+    'credit.title':'// ECONOMY','credit.uploaded':'Uploaded','credit.quota':'Download Quota',
+    'credit.remaining':'Remaining','credit.upload-btn':'+ UPLOAD TRACK',
+    // timer
+    'timer.title':'// TIMER','timer.off':'OFF',
+    'timer.notify':'Sleep timer: {0} min','timer.stopped':'Sleep timer stopped',
+    // topbar
+    'topbar.search':'SEARCH MUSIC...','topbar.login':'LOGIN','topbar.register':'REGISTER',
+    'topbar.upload':'⇧ UPLOAD','topbar.exit':'EXIT',
+    // main
+    'view.all':'ALL TRACKS','view.hot':'HOT CHARTS','view.history':'PLAY HISTORY',
+    'view.playlist':'MY LISTS','view.new-pl':'NEW PLAYLIST','view.loading':'LOADING GRID...',
+    'main.prev':'Previous','main.play':'Play / Pause','main.next':'Next',
+    'main.sort-title':'Sort by play count',
+    'btn.shuffle':'⇌ SHUFFLE',
+    'sort.default':'↕ PLAYS','sort.desc':'↓ PLAYS','sort.asc':'↑ PLAYS',
+    'sort.lbl.default':'Default order','sort.lbl.desc':'Most played first','sort.lbl.asc':'Least played first',
+    // play mode
+    'mode.seq':'Sequential','mode.random':'Random','mode.single':'Repeat One',
+    'mode.btn.seq':'→ SEQ','mode.btn.single':'↺ ONE','mode.btn.random':'⇌ RND',
+    // player
+    'np.no-track':'-- NO TRACK --','np.unknown':'UNKNOWN','mode.title':'Random playback',
+    // login modal
+    'login.title':'// LOGIN','login.field-user':'EMAIL OR USERNAME',
+    'login.ph-user':'user@grid.net','login.field-pass':'PASSWORD','login.ph-pass':'••••••••',
+    'login.cancel':'CANCEL','login.submit':'ACCESS',
+    'login.switch':'New user? ','login.switch-link':'REGISTER HERE',
+    'login.err-empty':'Please fill in all fields','login.err-fail':'Login failed',
+    'login.err-net':'Network error','login.welcome':'Welcome back, {0}!',
+    // register modal
+    'reg.title':'// REGISTER','reg.field-email':'EMAIL','reg.ph-email':'user@grid.net',
+    'reg.field-user':'USERNAME','reg.ph-user':'cyberuser',
+    'reg.field-pass':'PASSWORD','reg.ph-pass':'min 6 chars',
+    'reg.cancel':'CANCEL','reg.submit':'CREATE',
+    'reg.agree':'I have read and agree to the Terms of Service',
+    'reg.err-agree':'You must agree to the Terms of Service',
+    'reg.switch':'Have an account? ','reg.switch-link':'LOGIN HERE',
+    'reg.err-empty':'Please fill in all fields','reg.err-pass':'Password must be at least 6 chars',
+    'reg.err-fail':'Registration failed','reg.err-net':'Network error',
+    'reg.success':'Registered! Welcome to GRID',
+    // logout
+    'logout.ok':'Signed out',
+    // upload modal
+    'upload.title':'// UPLOAD TRACK','upload.drop':'DRAG & DROP or CLICK TO SELECT',
+    'upload.sub':'MP3 · M4A · FLAC · OGG · WAV · MAX 50MB',
+    'upload.cancel':'CANCEL','upload.submit':'TRANSMIT',
+    'upload.hint':'▲ 1 upload = 1 download credit — share more, get more',
+    'upload.err-sel':'Please select a file first',
+    'upload.doing':'UPLOADING:','upload.done':'COMPLETE:',
+    'upload.err-fail':'Upload failed:','upload.err-net':'Upload error:',
+    // song actions
+    'song.download':'Download','song.delete':'Delete',
+    'song.no-tracks':'NO TRACKS FOUND','song.tracks':'TRACKS',
+    'song.dl-fail':'Download failed','song.dl-ok':'Download complete','song.dl-err':'Download error',
+    'song.del-confirm':'Delete this track? This cannot be undone.',
+    'song.del-fail':'Delete failed','song.del-ok':'Deleted','song.del-err':'Delete error',
+    'shuffle.empty':'No tracks',
+    // playlist modal
+    'pl.title':'// MY PLAYLISTS','pl.ph':'NEW PLAYLIST NAME...','pl.create':'+ CREATE','pl.close':'CLOSE',
+    'pl.empty':'NO PLAYLISTS YET','pl.err-empty':'Enter a playlist name',
+    'pl.err-fail':'Failed','pl.ok':'Playlist "{0}" created','pl.err-net':'Network error',
+    'pl.tracks':'tracks','pl.play':'▶ PLAY','pl.fail':'LOAD FAILED',
+    'pl.is-empty':'Playlist is empty','pl.load-err':'Load failed',
+    // split view
+    'pl.select':'SELECT A PLAYLIST','pl.none':'NO PLAYLISTS',
+    'pl.play-all':'▶ PLAY ALL','pl.songs-empty':'PLAYLIST IS EMPTY','pl.play-btn':'Play',
+    // inline create
+    'pl.new-title':'NEW PLAYLIST','pl.new-label':'CREATE NEW PLAYLIST',
+    'pl.new-ph':'Playlist name...','pl.new-cancel':'CANCEL','pl.new-create':'+ CREATE',
+    'pl.new-err-empty':'Enter a playlist name','pl.new-err-fail':'Failed','pl.new-err-net':'Network error',
+  },
+  zh: {
+    // nav
+    'nav.all':'所有音乐','nav.hot':'热门榜单','nav.history':'听过的歌','nav.playlist':'我的列表',
+    'nav.navigate':'// 导航','nav.categories':'// 分类','nav.artists':'// 热门歌手',
+    'nav.new-pl':'新建列表','nav.admin':'管理后台',
+    // admin
+    'admin.tab.stats':'统计','admin.tab.review':'审核','admin.tab.cats':'分类','admin.tab.users':'用户','admin.tab.del-req':'删除申请',
+    'admin.tab.upload-log':'上传日志','admin.tab.dl-log':'下载日志',
+    'admin.cats':'各分类歌曲数','admin.users-stats':'用户数据',
+    'admin.filter.pending':'待审核','admin.filter.all':'全部',
+    'admin.filter.approved':'已通过','admin.filter.rejected':'已拒绝',
+    'admin.review.title':'// 歌曲审核',
+    'admin.review.approve':'通过','admin.review.reject':'拒绝',
+    'admin.review.notes-ph':'审核意见（可选）...','admin.review.cancel':'取消',
+    'admin.review.submit':'提交审核',
+    'admin.col.title':'标题','admin.col.artist':'歌手','admin.col.uploader':'上传者',
+    'admin.col.date':'时间','admin.col.status':'状态','admin.col.action':'操作',
+    'admin.col.songs':'歌曲数','admin.col.uploads':'上传数','admin.col.credits':'配额',
+    'admin.col.plays':'播放','admin.col.size':'大小',
+    'admin.pending-tip':'待审核','admin.no-data':'暂无数据',
+    'admin.approve-ok':'已通过审核 ✓','admin.reject-ok':'已拒绝','admin.back':'♪ 音乐',
+    // background
+    'btn.bg':'⬡ 背景','bg.title':'// 背景设置','bg.drop':'拖拽图片或点击选择',
+    'bg.sub':'JPG · PNG · WEBP · GIF · 最大20MB · 最多10张',
+    'bg.mode-label':'模式','bg.single':'单张','bg.slideshow':'轮播',
+    'bg.interval':'间隔','bg.fx':'效果','bg.cancel':'取消','bg.apply':'应用','bg.clear':'清除',
+    'bg.count':'{0}/10 张背景图','bg.deleted':'已删除背景图',
+    'bg.applied':'背景已应用','bg.cleared':'背景已清除',
+    // credits / economy
+    'credit.title':'// 经济系统','credit.uploaded':'已上传','credit.quota':'下载配额',
+    'credit.remaining':'剩余配额','credit.upload-btn':'+ 上传音乐',
+    // timer
+    'timer.title':'// 定时器','timer.off':'关',
+    'timer.notify':'定时 {0} 分钟后停止','timer.stopped':'定时播放已停止',
+    // topbar
+    'topbar.search':'搜索音乐...','topbar.login':'登录','topbar.register':'注册',
+    'topbar.upload':'⇧ 上传','topbar.exit':'退出',
+    // main
+    'view.all':'所有曲目','view.hot':'热门榜单','view.history':'播放历史',
+    'view.playlist':'我的列表','view.new-pl':'新建列表','view.loading':'加载中...',
+    'main.prev':'上一首','main.play':'播放 / 暂停','main.next':'下一首',
+    'main.sort-title':'按播放次数排序',
+    'btn.shuffle':'⇌ 随机',
+    'sort.default':'↕ 播放','sort.desc':'↓ 播放','sort.asc':'↑ 播放',
+    'sort.lbl.default':'默认排序','sort.lbl.desc':'播放最多→最少','sort.lbl.asc':'播放最少→最多',
+    // play mode
+    'mode.seq':'顺序','mode.random':'随机','mode.single':'单曲循环',
+    'mode.btn.seq':'→ 顺序','mode.btn.single':'↺ 单曲','mode.btn.random':'⇌ 随机',
+    // player
+    'np.no-track':'-- 未选择 --','np.unknown':'未知歌手','mode.title':'随机播放',
+    // login modal
+    'login.title':'// 登录','login.field-user':'邮箱或用户名',
+    'login.ph-user':'user@grid.net','login.field-pass':'密码','login.ph-pass':'••••••••',
+    'login.cancel':'取消','login.submit':'登录',
+    'login.switch':'新用户？','login.switch-link':'立即注册',
+    'login.err-empty':'请填写完整','login.err-fail':'登录失败',
+    'login.err-net':'网络错误','login.welcome':'欢迎回来，{0}！',
+    // register modal
+    'reg.title':'// 注册','reg.field-email':'邮箱','reg.ph-email':'user@grid.net',
+    'reg.field-user':'用户名','reg.ph-user':'输入用户名',
+    'reg.field-pass':'密码','reg.ph-pass':'至少6位',
+    'reg.cancel':'取消','reg.submit':'注册',
+    'reg.agree':'我已阅读并同意服务条款',
+    'reg.err-agree':'请先同意服务条款',
+    'reg.switch':'已有账号？','reg.switch-link':'立即登录',
+    'reg.err-empty':'请填写完整','reg.err-pass':'密码至少6位',
+    'reg.err-fail':'注册失败','reg.err-net':'网络错误',
+    'reg.success':'注册成功！欢迎加入 GRID',
+    // logout
+    'logout.ok':'已安全退出',
+    // upload modal
+    'upload.title':'// 上传音乐','upload.drop':'拖拽文件或点击选择',
+    'upload.sub':'MP3 · M4A · FLAC · OGG · WAV · 最大50MB',
+    'upload.cancel':'取消','upload.submit':'上传',
+    'upload.hint':'▲ 每上传1首 → 获得1个下载配额 · 贡献越多获取越多',
+    'upload.err-sel':'请先选择文件',
+    'upload.doing':'上传中：','upload.done':'完成：',
+    'upload.err-fail':'上传失败：','upload.err-net':'上传出错：',
+    // song actions
+    'song.download':'下载','song.delete':'删除',
+    'song.no-tracks':'未找到曲目','song.tracks':'首曲目',
+    'song.dl-fail':'下载失败','song.dl-ok':'下载成功','song.dl-err':'下载出错',
+    'song.del-confirm':'确认删除这首歌？此操作不可撤销。',
+    'song.del-fail':'删除失败','song.del-ok':'已删除','song.del-err':'删除出错',
+    'shuffle.empty':'没有歌曲',
+    // playlist modal
+    'pl.title':'// 我的列表','pl.ph':'新列表名称...','pl.create':'+ 创建','pl.close':'关闭',
+    'pl.empty':'还没有播放列表','pl.err-empty':'请输入列表名称',
+    'pl.err-fail':'创建失败','pl.ok':'列表「{0}」已创建','pl.err-net':'网络错误',
+    'pl.tracks':'首歌','pl.play':'▶ 播放','pl.fail':'加载失败',
+    'pl.is-empty':'列表为空','pl.load-err':'加载失败',
+    // split view
+    'pl.select':'选择一个列表','pl.none':'还没有列表',
+    'pl.play-all':'▶ 全部播放','pl.songs-empty':'列表为空','pl.play-btn':'播放',
+    // inline create
+    'pl.new-title':'新建列表','pl.new-label':'创建新的播放列表',
+    'pl.new-ph':'列表名称...','pl.new-cancel':'取消','pl.new-create':'+ 创建',
+    'pl.new-err-empty':'请输入列表名称','pl.new-err-fail':'创建失败','pl.new-err-net':'网络错误',
+  }
+};
+let currentLang = localStorage.getItem('nm_lang') || 'en';
+// 翻译辅助函数 — 支持 {0} {1} 插值
+function T(key, ...args) {
+  const tr = LANG[currentLang] || LANG.en;
+  let s = tr[key] !== undefined ? tr[key] : (LANG.en[key] || key);
+  args.forEach((v, i) => { s = s.replace(`{${i}}`, v); });
+  return s;
+}
+function applyLang() {
+  const tr = LANG[currentLang] || LANG.en;
+  // textContent
+  document.querySelectorAll('[data-i18n]').forEach(e => {
+    const v = tr[e.dataset.i18n]; if (v !== undefined) e.textContent = v;
+  });
+  // placeholder
+  document.querySelectorAll('[data-i18n-ph]').forEach(e => {
+    const v = tr[e.dataset.i18nPh]; if (v !== undefined) e.placeholder = v;
+  });
+  // title attribute
+  document.querySelectorAll('[data-i18n-title]').forEach(e => {
+    const v = tr[e.dataset.i18nTitle]; if (v !== undefined) e.title = v;
+  });
+  const btn = document.getElementById('btn-lang');
+  if (btn) btn.textContent = currentLang === 'en' ? '中文' : 'EN';
+  // 重新渲染当前歌曲列表（更新动态文本，如操作按钮 title）
+  renderSongList();
+  syncModeBtn();
+}
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  localStorage.setItem('nm_lang', currentLang);
+  applyLang();
+  notify(currentLang === 'en' ? 'Switched to English' : '已切换为中文', 'info', 1500);
+}
+
+// ── 状态 ────────────────────────────────────────────────────────
+const S = {
+  user: null, token: null, refreshToken: null,
+  songs: [], currentIndex: -1,
+  mode: 'random', shuffled: [], isPlaying: false,
+  currentView: 'all', categories: [],
+  filterCat: null, filterArtist: null,
+  timerEnd: null, timerInterval: null,
+  page: 1, hasMore: true, searchQ: '',
+  sortOrder: 'default', // 'default' | 'desc' | 'asc'
+  bgImages: [], bgSettings: { mode:'single', interval:10, active_id:null, selected_ids:[], fx:'random' },
+  bgSlideTimer: null, bgSlideIdx: 0,
+};
+
+// ── 安全 DOM 工具 ────────────────────────────────────────────────
+// 所有用户内容必须通过这些函数渲染，永不直接 innerHTML 用户数据
+function t(text) { return document.createTextNode(String(text || '')); }
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'class') e.className = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('data-')) e.dataset[k.slice(5)] = v;
+    else e[k] = v;
+  });
+  children.forEach(c => c && e.append(typeof c === 'string' ? t(c) : c));
+  return e;
+}
+function setTxt(id, text) {
+  const e = document.getElementById(id);
+  if (e) e.textContent = String(text || '');
+}
+
+// ── 持久化 ──────────────────────────────────────────────────────
+function saveAuth(token, refresh, user) {
+  localStorage.setItem('nm_token', token);
+  localStorage.setItem('nm_refresh', refresh);
+  localStorage.setItem('nm_user', JSON.stringify(user));
+  S.token = token; S.refreshToken = refresh; S.user = user;
+}
+function loadAuth() {
+  S.token = localStorage.getItem('nm_token');
+  S.refreshToken = localStorage.getItem('nm_refresh');
+  try { S.user = JSON.parse(localStorage.getItem('nm_user') || 'null'); } catch(e) {}
+}
+function clearAuth() {
+  ['nm_token','nm_refresh','nm_user'].forEach(k => localStorage.removeItem(k));
+  S.token = null; S.refreshToken = null; S.user = null;
+}
+
+// ── API ──────────────────────────────────────────────────────────
+async function apiFetch(path, opts = {}) {
+  const hdrs = { ...opts.headers };
+  if (!(opts.body instanceof FormData)) hdrs['Content-Type'] = 'application/json';
+  if (S.token) hdrs['Authorization'] = `Bearer ${S.token}`;
+  let resp = await fetch(path, { ...opts, headers: hdrs });
+  if (resp.status === 401 && S.refreshToken) {
+    const ok = await tryRefresh();
+    if (ok) {
+      hdrs['Authorization'] = `Bearer ${S.token}`;
+      resp = await fetch(path, { ...opts, headers: hdrs });
+    } else { clearAuth(); updateUserUI(); }
+  }
+  return resp;
+}
+async function tryRefresh() {
+  try {
+    const r = await fetch('/api/auth/refresh', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ refresh_token: S.refreshToken })
+    });
+    if (!r.ok) return false;
+    const d = await r.json();
+    S.token = d.access_token;
+    localStorage.setItem('nm_token', d.access_token);
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── 通知 ──────────────────────────────────────────────────────────
+function notify(msg, type = 'info', dur = 3000) {
+  const bar = document.getElementById('notify-bar');
+  const n = el('div', { class: `notify ${type}` });
+  n.append(t(msg));
+  bar.appendChild(n);
+  setTimeout(() => { n.style.opacity = '0'; n.style.transition = 'opacity .3s'; setTimeout(() => n.remove(), 300); }, dur);
+}
+
+// ── 模态框 ────────────────────────────────────────────────────────
+function openModal(name) { document.getElementById('modal-'+name)?.classList.add('open'); }
+function closeModal(name) { document.getElementById('modal-'+name)?.classList.remove('open'); }
+
+// ── 用户 UI ───────────────────────────────────────────────────────
+function updateUserUI() {
+  const li = !!S.user;
+  document.getElementById('btn-login').style.display    = li ? 'none' : '';
+  document.getElementById('btn-register').style.display = li ? 'none' : '';
+  document.getElementById('btn-logout').style.display   = li ? '' : 'none';
+  document.getElementById('btn-upload-top').style.display = li ? '' : 'none';
+  document.getElementById('credit-badge').style.display = li ? '' : 'none';
+  const ul = document.getElementById('user-label');
+  if (ul) { ul.style.display = li ? '' : 'none'; if (li && S.user) ul.textContent = S.user.username; }
+  // admin 导航项
+  const adminNav = document.getElementById('nav-admin');
+  if (adminNav) adminNav.style.display = (li && S.user?.is_admin) ? '' : 'none';
+  const toAdmin = document.getElementById('btn-to-admin');
+  if (toAdmin) toAdmin.style.display = (li && S.user?.is_admin) ? '' : 'none';
+  // 背景按钮：始终可见（非登录用户可用电音波形，登录用户可上传图片）
+  document.getElementById('btn-background').style.display = '';
+  if (li && !S.user?.is_admin) loadCredits();
+}
+async function loadCredits() {
+  if (!S.user) return;
+  try {
+    const r = await apiFetch('/api/user/credits');
+    if (!r.ok) return;
+    const d = await r.json();
+    setTxt('stat-upload', d.upload_count || 0);
+    setTxt('stat-quota',  d.download_credits || 0);
+    setTxt('stat-remain', d.downloads_remaining || 0);
+    const pct = d.download_credits > 0 ? Math.min(100, (d.downloads_remaining / d.download_credits) * 100) : 0;
+    document.getElementById('credit-bar').style.width = pct + '%';
+    document.getElementById('credit-badge').textContent = `▲${d.upload_count||0} ▼${d.downloads_remaining||0}`;
+  } catch(e) {}
+}
+
+// ── 认证 ──────────────────────────────────────────────────────────
+async function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-err');
+  errEl.textContent = '';
+  if (!user || !pass) { errEl.textContent = T('login.err-empty'); return; }
+  const btn = document.getElementById('btn-do-login');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const r = await fetch('/api/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email_or_username: user, password: pass })
+    });
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.detail || T('login.err-fail'); return; }
+    saveAuth(d.access_token, d.refresh_token, d.user);
+    closeModal('login');
+    updateUserUI();
+    notify(T('login.welcome', d.user.username), 'success');
+    loadBgData().then(() => applyBg());
+    // 超级用户自动进入管理后台
+    if (d.user.is_admin) switchView('admin');
+  } catch(e) { errEl.textContent = T('login.err-net'); }
+  finally { btn.disabled = false; btn.textContent = T('login.submit'); }
+}
+async function doRegister() {
+  const email = document.getElementById('reg-email').value.trim();
+  const user  = document.getElementById('reg-user').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const errEl = document.getElementById('reg-err');
+  errEl.textContent = '';
+  if (!email || !user || !pass) { errEl.textContent = T('reg.err-empty'); return; }
+  if (pass.length < 6) { errEl.textContent = T('reg.err-pass'); return; }
+  if (!document.getElementById('reg-agree').checked) { errEl.textContent = T('reg.err-agree'); return; }
+  try {
+    const r = await fetch('/api/auth/register', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, username: user, password: pass })
+    });
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.detail || T('reg.err-fail'); return; }
+    saveAuth(d.access_token, d.refresh_token, d.user);
+    closeModal('register');
+    updateUserUI();
+    notify(T('reg.success'), 'success');
+  } catch(e) { errEl.textContent = T('reg.err-net'); }
+}
+async function logout() {
+  try { await apiFetch('/api/auth/logout', { method:'POST' }); } catch(e) {}
+  clearAuth();
+  // 如果在 admin 视图，退回到普通音乐页面
+  if (S.currentView === 'admin') switchView('all');
+  updateUserUI();
+  notify(T('logout.ok'), 'info');
+}
+
+// ── 歌曲列表渲染（纯 DOM API，无 innerHTML 用户数据） ──────────────
+async function loadSongs(reset = true) {
+  if (reset) { S.page = 1; S.hasMore = true; S.songs = []; }
+  if (!S.hasMore) return;
+  const p = new URLSearchParams({ page: S.page, limit: 50 });
+  if (S.filterCat)    p.set('category', S.filterCat);
+  if (S.filterArtist) p.set('artist', S.filterArtist);
+  if (S.searchQ)      p.set('q', S.searchQ);
+  try {
+    const r = await apiFetch(`/api/songs?${p}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    S.songs = reset ? d.songs : [...S.songs, ...d.songs];
+    S.hasMore = S.page < d.pages;
+    S.page++;
+    renderSongList();
+    setTxt('main-subtitle', `${d.total} ${T('song.tracks')}`);
+    setTxt('total-count', d.total);
+  } catch(e) { console.error(e); }
+}
+
+function renderSongList() {
+  const container = document.getElementById('song-list-view');
+  // In playlist split-view: only sync the playing row highlight
+  if (container.classList.contains('pl-mode')) {
+    document.querySelectorAll('.pl-songs-row').forEach((row, ri) => {
+      row.classList.toggle('playing', ri === S.currentIndex);
+    });
+    return;
+  }
+  container.replaceChildren();
+  if (!S.songs.length) {
+    container.append(el('div', {class:'empty-state'},
+      el('div', {class:'icon'}, '◈'),
+      el('p', {}, T('song.no-tracks'))
+    ));
+    return;
+  }
+
+  // Build display order (sorted copy; S.songs stays in original order)
+  let display = S.songs;
+  if (S.sortOrder === 'desc') display = [...S.songs].sort((a,b) => (b.play_count||0) - (a.play_count||0));
+  else if (S.sortOrder === 'asc')  display = [...S.songs].sort((a,b) => (a.play_count||0) - (b.play_count||0));
+
+  const frag = document.createDocumentFragment();
+  display.forEach((s, displayIdx) => {
+    // Find real index in S.songs for correct playback
+    const realIdx = S.songs.indexOf(s);
+    const row = el('div', { class: `song-row${S.currentIndex === realIdx ? ' playing' : ''}` });
+
+    const numDiv = el('div', {class:'song-num'}, String(displayIdx+1));
+    const info = el('div', {class:'song-info'},
+      el('div', {class:'song-title'}, s.title || s.filename || '--'),
+      el('div', {class:'song-artist'}, s.artist || '--')
+    );
+    const cat   = el('div', {class:'song-category'}, s.category_name || 'MISC');
+    const plays = el('div', {class:'song-plays'});
+    const playsB = el('b'); playsB.textContent = String(s.play_count || 0);
+    plays.append(playsB, t('▶'));
+    const dur   = el('div', {class:'song-duration'}, formatDur(s.duration));
+    const acts  = el('div', {class:'song-actions'});
+
+    if (S.user) {
+      const dlBtn = el('button', {class:'song-action-btn', title:T('song.download')}, '⇩');
+      dlBtn.addEventListener('click', ev => { ev.stopPropagation(); downloadSong(s.id); });
+      acts.append(dlBtn);
+    }
+    if (canDelete(s)) {
+      const delBtn = el('button', {class:'song-action-btn del', title:T('song.delete')}, '✕');
+      delBtn.addEventListener('click', ev => { ev.stopPropagation(); delSong(s.id, realIdx); });
+      acts.append(delBtn);
+    }
+
+    row.append(numDiv, info, cat, plays, dur, acts);
+    row.addEventListener('click', () => playSongAt(realIdx));
+    frag.append(row);
+  });
+  container.appendChild(frag);
+
+  // 无限滚动
+  container.onscroll = () => {
+    if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100) loadSongs(false);
+  };
+}
+
+function canDelete(song) {
+  if (!S.user || song.is_system) return false;
+  return song.uploaded_by === S.user.id || S.user.is_admin;
+}
+function formatDur(s) {
+  if (!s || isNaN(s)) return '0:00';
+  return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+}
+
+// ── 状态持久化 ────────────────────────────────────────────────────
+let _stTimer = null;
+function saveState() {
+  const d = {
+    view: S.currentView, cat: S.filterCat, artist: S.filterArtist, q: S.searchQ,
+    mode: S.mode, sort: S.sortOrder, vol: audio.volume,
+    songId: (S.currentIndex >= 0 && S.songs[S.currentIndex]) ? S.songs[S.currentIndex].id : null,
+    time: audio.currentTime || 0, playing: S.isPlaying,
+    scroll: document.getElementById('song-list-view')?.scrollTop || 0,
+  };
+  try { localStorage.setItem('nm_state', JSON.stringify(d)); } catch(e) {}
+}
+function _deferSave() { clearTimeout(_stTimer); _stTimer = setTimeout(saveState, 500); }
+function _getSaved() { try { return JSON.parse(localStorage.getItem('nm_state')||'{}'); } catch(e) { return {}; } }
+window.addEventListener('beforeunload', saveState);
+
+// ── 播放器 ────────────────────────────────────────────────────────
+const audio = document.getElementById('audio-el');
+audio.volume = 0.8;
+
+function syncMainPlayBtn() {
+  const btn = document.getElementById('main-btn-play');
+  if (btn) btn.textContent = S.isPlaying ? '⏸' : '▶';
+}
+
+function playSongAt(index) {
+  if (index < 0 || index >= S.songs.length) return;
+  S.currentIndex = index;
+  const song = S.songs[index];
+  // 使用 Range 支持的流接口
+  audio.src = `/api/songs/${song.id}/stream`;
+  audio.load(); audio.play().catch(e => console.warn('play:', e));
+  S.isPlaying = true;
+  setTxt('np-title',  song.title || song.filename || '--');
+  setTxt('np-artist', song.artist || T('np.unknown'));
+  document.getElementById('btn-play').textContent = '⏸';
+  document.getElementById('np-art').classList.add('playing');
+  document.title = `${song.title || song.filename} — NEUROMIX`;
+  syncMainPlayBtn();
+  renderSongList();
+  apiFetch(`/api/songs/${song.id}/play`, { method:'POST' }).catch(()=>{});
+  if (_vizEnabled) startVisualizer();
+  saveState();
+}
+function togglePlay() {
+  if (S.currentIndex === -1 && S.songs.length) { playSongAt(0); return; }
+  // 刷新后首次点播：audio 还没 src，需要先加载
+  if (S.currentIndex >= 0 && (!audio.src || audio.src === location.href)) {
+    const song = S.songs[S.currentIndex];
+    audio.src = `/api/songs/${song.id}/stream`;
+    audio.load();
+    if (S._savedTime) {
+      audio.addEventListener('loadedmetadata', () => {
+        if (S._savedTime > 0 && S._savedTime < audio.duration) audio.currentTime = S._savedTime;
+        S._savedTime = 0;
+      }, { once: true });
+    }
+  }
+  if (audio.paused) { audio.play().catch(()=>{}); S.isPlaying = true; if (_vizEnabled) startVisualizer(); }
+  else { audio.pause(); S.isPlaying = false; stopVisualizer(); }
+  document.getElementById('btn-play').textContent = S.isPlaying ? '⏸' : '▶';
+  document.getElementById('np-art').classList.toggle('playing', S.isPlaying);
+  syncMainPlayBtn();
+}
+function nextSong() {
+  if (!S.songs.length) return;
+  if (S.mode === 'single') { audio.currentTime = 0; audio.play(); return; }
+  if (S.mode === 'random') {
+    if (!S.shuffled.length) buildShuffled();
+    const i = S.shuffled.indexOf(S.currentIndex);
+    playSongAt(S.shuffled[(i+1) % S.shuffled.length]);
+  } else {
+    playSongAt((S.currentIndex + 1) % S.songs.length);
+  }
+}
+function prevSong() {
+  if (!S.songs.length) return;
+  if (S.mode === 'random') {
+    const i = S.shuffled.indexOf(S.currentIndex);
+    playSongAt(S.shuffled[i > 0 ? i-1 : S.shuffled.length-1]);
+  } else {
+    playSongAt((S.currentIndex - 1 + S.songs.length) % S.songs.length);
+  }
+}
+function buildShuffled() {
+  S.shuffled = [...Array(S.songs.length).keys()];
+  for (let i = S.shuffled.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [S.shuffled[i],S.shuffled[j]] = [S.shuffled[j],S.shuffled[i]];
+  }
+}
+function shufflePlay() {
+  if (!S.songs.length) { notify(T('shuffle.empty'), 'error'); return; }
+  S.mode = 'random'; buildShuffled(); syncModeBtn(); playSongAt(S.shuffled[0]);
+}
+function cycleSortOrder() {
+  const orders = ['default', 'desc', 'asc'];
+  const keys   = ['sort.default', 'sort.desc', 'sort.asc'];
+  const lbls   = ['sort.lbl.default', 'sort.lbl.desc', 'sort.lbl.asc'];
+  const i = (orders.indexOf(S.sortOrder) + 1) % 3;
+  S.sortOrder = orders[i];
+  const btn = document.getElementById('btn-sort-plays');
+  if (btn) btn.textContent = T(keys[i]);
+  renderSongList();
+  notify(T(lbls[i]), 'info', 1500);
+  saveState();
+}
+function syncModeBtn() {
+  const btnKeys = { sequential:'mode.btn.seq', single:'mode.btn.single', random:'mode.btn.random' };
+  const icons   = { sequential:'⇒', single:'⇄', random:'⇌' };
+  const lblKeys = { sequential:'mode.seq', single:'mode.single', random:'mode.random' };
+  const bot  = document.getElementById('btn-mode');
+  if (bot) { bot.textContent = icons[S.mode]||'⇒'; bot.title = T(lblKeys[S.mode]||'mode.seq'); }
+  const main = document.getElementById('btn-play-mode');
+  if (main) { main.textContent = T(btnKeys[S.mode]||'mode.btn.seq'); main.dataset.mode = S.mode; }
+}
+function cycleMode() {
+  const m  = ['sequential','random','single'];
+  const lk = ['mode.seq','mode.random','mode.single'];
+  const i  = (m.indexOf(S.mode) + 1) % m.length;
+  S.mode = m[i];
+  if (S.mode === 'random') buildShuffled();
+  syncModeBtn();
+  notify(T(lk[i]), 'info', 1500);
+  saveState();
+}
+
+audio.addEventListener('ended', nextSong);
+audio.addEventListener('timeupdate', () => {
+  const pct = audio.duration ? (audio.currentTime/audio.duration)*100 : 0;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  setTxt('time-current', formatDur(audio.currentTime));
+  setTxt('time-total',   formatDur(audio.duration || 0));
+  if (S.timerEnd && Date.now() >= S.timerEnd) { audio.pause(); stopTimer(); notify(T('timer.stopped'), 'info'); }
+  _deferSave();
+});
+
+document.getElementById('progress-bar-wrap').addEventListener('click', ev => {
+  if (!audio.duration) return;
+  const r = ev.currentTarget.getBoundingClientRect();
+  audio.currentTime = ((ev.clientX - r.left) / r.width) * audio.duration;
+});
+document.getElementById('volume-slider').addEventListener('input', ev => {
+  audio.volume = ev.target.value / 100;
+  localStorage.setItem('nm_volume', String(audio.volume));
+  _deferSave();
+});
+document.getElementById('vol-icon').addEventListener('click', () => {
+  audio.muted = !audio.muted;
+  document.getElementById('vol-icon').textContent = audio.muted ? '🔇' : '🔊';
+});
+
+// ── 下载 ──────────────────────────────────────────────────────────
+async function downloadSong(songId) {
+  if (!S.user) { openModal('login'); return; }
+  try {
+    const r = await apiFetch(`/api/songs/${songId}/download`);
+    if (!r.ok) { const d = await r.json(); notify(d.detail || T('song.dl-fail'), 'error'); return; }
+    const blob = await r.blob();
+    const song = S.songs.find(s => s.id === songId);
+    const a = el('a', { href: URL.createObjectURL(blob) });
+    a.download = song?.filename || `track_${songId}`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    notify(T('song.dl-ok'), 'success'); loadCredits();
+  } catch(e) { notify(T('song.dl-err'), 'error'); }
+}
+
+// ── 上传 ──────────────────────────────────────────────────────────
+let pendingFiles = [];
+document.getElementById('file-input').addEventListener('change', ev => {
+  pendingFiles = Array.from(ev.target.files); renderUploadList();
+});
+document.getElementById('drop-zone').addEventListener('click', () => document.getElementById('file-input').click());
+document.getElementById('drop-zone').addEventListener('dragover', ev => { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); });
+document.getElementById('drop-zone').addEventListener('dragleave', ev => ev.currentTarget.classList.remove('drag-over'));
+document.getElementById('drop-zone').addEventListener('drop', ev => {
+  ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
+  pendingFiles = Array.from(ev.dataTransfer.files).filter(f => /\.(mp3|m4a|flac|ogg|wav)$/i.test(f.name));
+  renderUploadList();
+});
+function renderUploadList() {
+  const list = document.getElementById('upload-file-list');
+  list.replaceChildren();
+  pendingFiles.forEach(f => {
+    const item = el('div', {class:'upload-file-item'});
+    const nm = el('span', {style:'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1'});
+    nm.textContent = f.name;
+    const sz = el('span', {class:'upload-file-size'}, `${(f.size/1024/1024).toFixed(1)}MB`);
+    item.append(nm, sz); list.append(item);
+  });
+}
+async function doUpload() {
+  if (!S.user) { closeModal('upload'); openModal('login'); return; }
+  if (!pendingFiles.length) { document.getElementById('upload-err').textContent = T('upload.err-sel'); return; }
+  document.getElementById('upload-err').textContent = '';
+  document.getElementById('upload-progress').style.display = '';
+  const btn = document.getElementById('btn-do-upload'); btn.disabled = true;
+  let done = 0;
+  for (const file of pendingFiles) {
+    document.getElementById('upload-status').textContent = `${T('upload.doing')} ${file.name}`;
+    document.getElementById('upload-fill').style.width = `${(done/pendingFiles.length)*100}%`;
+    const fd = new FormData(); fd.append('file', file);
+    try {
+      const r = await apiFetch('/api/songs/upload', { method:'POST', headers:{}, body: fd });
+      const d = await r.json();
+      if (!r.ok) notify(`${T('upload.err-fail')} ${d.detail}`, 'error');
+      else { notify(`✓ ${file.name}`, 'success', 2000); done++; }
+    } catch(e) { notify(`${T('upload.err-net')} ${file.name}`, 'error'); }
+  }
+  document.getElementById('upload-fill').style.width = '100%';
+  document.getElementById('upload-status').textContent = `${T('upload.done')} ${done}/${pendingFiles.length}`;
+  btn.disabled = false; pendingFiles = []; renderUploadList(); loadCredits(); loadSongs();
+  setTimeout(() => { closeModal('upload'); document.getElementById('upload-progress').style.display = 'none'; }, 1500);
+}
+
+// ── 删除 ──────────────────────────────────────────────────────────
+async function delSong(songId, idx) {
+  const song = S.songs[idx];
+  const isApproved = song && song.review_status === 'approved';
+  let reason = '';
+  if (isApproved) {
+    reason = prompt(currentLang === 'zh'
+      ? '此歌曲已审核通过，删除需要管理员审批。\n请填写删除理由：'
+      : 'This song is approved. Deletion requires admin approval.\nPlease enter reason:');
+    if (!reason) return;
+  } else {
+    if (!confirm(T('song.del-confirm'))) return;
+  }
+  try {
+    const r = await apiFetch(`/api/songs/${songId}?reason=${encodeURIComponent(reason)}`, { method:'DELETE' });
+    const d = await r.json();
+    if (!r.ok) { notify(d.detail || T('song.del-fail'), 'error'); return; }
+    if (d.action === 'requested') {
+      notify(d.message, 'info', 3000);
+    } else {
+      S.songs.splice(idx, 1);
+      if (S.currentIndex === idx) { audio.pause(); S.currentIndex = -1; }
+      else if (S.currentIndex > idx) S.currentIndex--;
+      renderSongList(); notify(T('song.del-ok'), 'success');
+    }
+  } catch(e) { notify(T('song.del-err'), 'error'); }
+}
+
+// ── 分类 ──────────────────────────────────────────────────────────
+async function loadCategories() {
+  try {
+    const r = await apiFetch('/api/categories');
+    S.categories = await r.json();
+    renderCategoryNav(); renderFilterBar();
+  } catch(e) {}
+}
+function renderCategoryNav() {
+  const list = document.getElementById('cat-nav-list');
+  list.replaceChildren();
+  S.categories.forEach(c => {
+    const item = el('div', {class:`nav-item${S.filterCat == c.id ? ' active' : ''}`},
+      el('span', {class:'icon'}, c.is_system ? '◆' : '◇'),
+      c.name,
+      el('span', {class:'nav-badge'}, String(c.song_count || ''))
+    );
+    item.addEventListener('click', () => filterByCategory(c.id, c.name));
+    list.append(item);
+  });
+}
+function renderFilterBar() {
+  const bar = document.getElementById('filter-bar');
+  bar.replaceChildren();
+  const all = el('div', {class:`filter-chip${!S.filterCat ? ' active' : ''}`}, 'ALL');
+  all.addEventListener('click', () => filterByCategory(null, ''));
+  bar.append(all);
+  S.categories.forEach(c => {
+    const chip = el('div', {class:`filter-chip${S.filterCat == c.id ? ' active' : ''}`}, c.name);
+    chip.addEventListener('click', () => filterByCategory(c.id, c.name));
+    bar.append(chip);
+  });
+  bar.style.display = '';
+}
+function filterByCategory(catId, catName) {
+  S.filterCat = catId; S.filterArtist = null;
+  setTxt('main-title', catId ? catName.toUpperCase() : T('view.all'));
+  renderCategoryNav(); renderFilterBar(); loadSongs();
+  saveState();
+}
+async function loadHotArtists() {
+  try {
+    const r = await apiFetch('/api/artists?limit=10');
+    const artists = await r.json();
+    const list = document.getElementById('artist-nav-list');
+    list.replaceChildren();
+    artists.slice(0,10).forEach(a => {
+      const item = el('div', {class:'nav-item'},
+        el('span', {class:'icon'}, '♪'),
+        a.artist,
+        el('span', {class:'nav-badge'}, String(a.song_count || ''))
+      );
+      item.addEventListener('click', () => { S.filterArtist = a.artist; S.filterCat = null; setTxt('main-title', a.artist.toUpperCase()); loadSongs(); saveState(); });
+      list.append(item);
+    });
+  } catch(e) {}
+}
+
+// ── 定时器 ────────────────────────────────────────────────────────
+function setTimer(minutes) {
+  stopTimer();
+  document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
+  if (!minutes) { setTxt('timer-display', '--:--'); document.getElementById('timer-display').classList.remove('running'); return; }
+  S.timerEnd = Date.now() + minutes * 60000;
+  document.getElementById('timer-display').classList.add('running');
+  S.timerInterval = setInterval(updateTimerDisplay, 1000);
+  document.querySelectorAll('.timer-btn').forEach(b => { if (Number(b.dataset.min) === minutes) b.classList.add('active'); });
+  notify(T('timer.notify', minutes), 'info');
+}
+function stopTimer() {
+  if (S.timerInterval) { clearInterval(S.timerInterval); S.timerInterval = null; }
+  S.timerEnd = null;
+  document.getElementById('timer-display').classList.remove('running');
+  document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
+}
+function updateTimerDisplay() {
+  const rem = Math.max(0, S.timerEnd - Date.now());
+  const m = Math.floor(rem/60000), s = Math.floor((rem%60000)/1000);
+  setTxt('timer-display', `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+}
+
+// ── 电音波形可视化 ──────────────────────────────────────────────────
+let _vizCtx = null, _vizAnalyser = null, _vizSource = null, _vizRunning = false, _vizEnabled = false;
+
+function initVisualizer() {
+  if (_vizCtx) return;
+  try {
+    _vizCtx = new (window.AudioContext || window.webkitAudioContext)();
+    _vizAnalyser = _vizCtx.createAnalyser();
+    _vizAnalyser.fftSize = 256;
+    _vizSource = _vizCtx.createMediaElementSource(audio);
+    _vizSource.connect(_vizAnalyser);
+    _vizAnalyser.connect(_vizCtx.destination);
+  } catch(e) { console.warn('AudioContext not available:', e); }
+}
+
+function startVisualizer() {
+  if (_vizRunning) return;
+  if (!_vizCtx) initVisualizer();
+  if (!_vizAnalyser) return;
+  _vizRunning = true;
+  const canvas = document.getElementById('visualizer-canvas');
+  const ctx = canvas.getContext('2d');
+  const bufLen = _vizAnalyser.frequencyBinCount;
+  const dataArr = new Uint8Array(bufLen);
+
+  function draw() {
+    if (!_vizRunning) return;
+    requestAnimationFrame(draw);
+    const W = canvas.width = canvas.clientWidth;
+    const H = canvas.height = canvas.clientHeight;
+    _vizAnalyser.getByteFrequencyData(dataArr);
+    ctx.clearRect(0, 0, W, H);
+
+    const bars = Math.min(bufLen, 80);
+    const barW = W / bars;
+    const gap = 2;
+    for (let i = 0; i < bars; i++) {
+      const v = dataArr[i] / 255;
+      const h = v * H * 0.85;
+      const x = i * barW;
+      // 赛博朋克渐变：底部 cyan → 顶部 violet/pink
+      const grad = ctx.createLinearGradient(x, H, x, H - h);
+      grad.addColorStop(0, `rgba(0,255,231,${0.4 + v * 0.5})`);
+      grad.addColorStop(0.5, `rgba(123,47,255,${0.3 + v * 0.4})`);
+      grad.addColorStop(1, `rgba(255,0,128,${0.2 + v * 0.3})`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(x + gap / 2, H - h, barW - gap, h);
+
+      // 顶部光点
+      if (v > 0.1) {
+        ctx.fillStyle = `rgba(0,255,231,${v * 0.8})`;
+        ctx.fillRect(x + gap / 2, H - h - 3, barW - gap, 2);
+      }
+    }
+
+    // 中线反射（倒影）
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    ctx.scale(1, -1);
+    ctx.drawImage(canvas, 0, -H * 2);
+    ctx.restore();
+
+    // 扫描线效果
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 2);
+  }
+  draw();
+}
+
+function stopVisualizer() {
+  _vizRunning = false;
+}
+
+function toggleVisualizer() {
+  _vizEnabled = !_vizEnabled;
+  const layer = document.getElementById('main-bg-layer');
+  if (_vizEnabled) {
+    layer.style.display = '';
+    if (S.isPlaying) startVisualizer();
+  } else {
+    stopVisualizer();
+    // 如果有用户背景图就保持显示，否则隐藏
+    if (!S.bgImages.length) layer.style.display = 'none';
+  }
+  localStorage.setItem('nm_viz', _vizEnabled ? '1' : '0');
+}
+
+// ── 背景图管理 ──────────────────────────────────────────────────────
+
+async function openBgModal() {
+  if (!S.user) {
+    // 非登录用户：切换电音动态波形
+    toggleVisualizer();
+    notify(_vizEnabled ? (currentLang === 'zh' ? '电音波形已开启' : 'Visualizer ON') : (currentLang === 'zh' ? '电音波形已关闭' : 'Visualizer OFF'), 'info', 1500);
+    return;
+  }
+  openModal('background');
+  await loadBgData();
+}
+
+async function loadBgData() {
+  try {
+    const r = await apiFetch('/api/backgrounds');
+    if (!r.ok) return;
+    const d = await r.json();
+    S.bgImages = d.backgrounds;
+    S.bgSettings = d.settings;
+    S.bgSettings.fx = localStorage.getItem('nm_bg_fx') || 'random';
+    try { S.bgSettings.selected_ids = JSON.parse(localStorage.getItem('nm_bg_sel') || '[]'); } catch(e) { S.bgSettings.selected_ids = []; }
+    // 清理已删除图片的选中状态
+    const validIds = new Set(d.backgrounds.map(b => b.id));
+    S.bgSettings.selected_ids = S.bgSettings.selected_ids.filter(id => validIds.has(id));
+    renderBgThumbs();
+    syncBgModeUI();
+  } catch(e) {}
+}
+
+// 带鉴权加载图片为 blob URL
+async function _loadBgImg(imgEl, bgId) {
+  try {
+    const r = await apiFetch(`/api/backgrounds/${bgId}/image`);
+    if (r.ok) { const b = await r.blob(); imgEl.src = URL.createObjectURL(b); }
+  } catch(e) {}
+}
+
+function renderBgThumbs() {
+  const grid = document.getElementById('bg-thumb-grid');
+  grid.replaceChildren();
+  const isSS = S.bgSettings.mode === 'slideshow';
+  const selSet = new Set(S.bgSettings.selected_ids || []);
+  S.bgImages.forEach(bg => {
+    const isSel = isSS ? selSet.has(bg.id) : (S.bgSettings.active_id === bg.id);
+    const item = el('div', {class:'bg-thumb-item' + (isSel ? ' selected' : '')});
+    const img = document.createElement('img');
+    _loadBgImg(img, bg.id);
+    const del = el('button', {class:'bg-thumb-del'}, '✕');
+    del.addEventListener('click', ev => { ev.stopPropagation(); deleteBgItem(bg.id); });
+    const chk = el('div', {class:'bg-thumb-check'}, '✓');
+    item.append(img, del, chk);
+    item.addEventListener('click', () => {
+      if (isSS) {
+        // slideshow: 多选 toggle
+        const s = S.bgSettings.selected_ids || [];
+        const idx = s.indexOf(bg.id);
+        if (idx >= 0) s.splice(idx, 1); else s.push(bg.id);
+        S.bgSettings.selected_ids = s;
+      } else {
+        // single: 单选
+        S.bgSettings.active_id = bg.id;
+      }
+      renderBgThumbs();
+    });
+    grid.append(item);
+  });
+  const cnt = isSS ? `${selSet.size}/${S.bgImages.length}` : `${S.bgImages.length}/10`;
+  setTxt('bg-count', isSS ? (currentLang === 'zh' ? `已选 ${selSet.size} 张` : `${selSet.size} selected`) : T('bg.count', S.bgImages.length));
+}
+
+function syncBgModeUI() {
+  document.getElementById('bg-mode-select').value = S.bgSettings.mode;
+  document.getElementById('bg-interval').value = S.bgSettings.interval;
+  document.getElementById('bg-interval-val').textContent = S.bgSettings.interval + 's';
+  if (S.bgSettings.fx) document.getElementById('bg-fx-select').value = S.bgSettings.fx;
+  const show = S.bgSettings.mode === 'slideshow';
+  ['bg-interval-label','bg-interval','bg-interval-val','bg-fx-label','bg-fx-select'].forEach(id => {
+    document.getElementById(id).style.display = show ? '' : 'none';
+  });
+}
+
+async function uploadBgFiles(files) {
+  const errEl = document.getElementById('bg-upload-err');
+  errEl.textContent = '';
+  const extOk = /\.(jpe?g|png|webp|gif)$/i;
+  const maxBytes = 20 * 1024 * 1024;
+  const all = Array.from(files).filter(f => extOk.test(f.name));
+  const rejected = [];
+
+  for (const f of all) {
+    if (S.bgImages.length >= 10) { rejected.push(`${f.name} (max 10)`); break; }
+    if (f.size > maxBytes) {
+      rejected.push(`${f.name} (${(f.size/1024/1024).toFixed(1)}MB)`);
+      continue;
+    }
+    const fd = new FormData(); fd.append('file', f);
+    try {
+      const r = await apiFetch('/api/backgrounds/upload', { method:'POST', headers:{}, body:fd });
+      if (!r.ok) { const d = await r.json(); rejected.push(`${f.name} (${d.detail||'error'})`); }
+      else await loadBgData();
+    } catch(e) { rejected.push(`${f.name} (error)`); }
+  }
+  if (rejected.length) {
+    errEl.textContent = (currentLang === 'zh' ? '已跳过: ' : 'Skipped: ') + rejected.join(', ');
+  }
+}
+
+async function deleteBgItem(id) {
+  const r = await apiFetch(`/api/backgrounds/${id}`, {method:'DELETE'});
+  if (r.ok) { notify(T('bg.deleted'),'success',2000); await loadBgData(); applyBg(); }
+}
+
+async function applyBgSettings() {
+  const mode = document.getElementById('bg-mode-select').value;
+  const interval = parseInt(document.getElementById('bg-interval').value);
+  const fx = document.getElementById('bg-fx-select').value;
+  await apiFetch('/api/backgrounds/settings', {
+    method:'PUT', body: JSON.stringify({mode, interval, active_id: S.bgSettings.active_id})
+  });
+  S.bgSettings.mode = mode;
+  S.bgSettings.interval = interval;
+  S.bgSettings.fx = fx;
+  localStorage.setItem('nm_bg_fx', fx);
+  localStorage.setItem('nm_bg_sel', JSON.stringify(S.bgSettings.selected_ids || []));
+  applyBg();
+  closeModal('background');
+  notify(T('bg.applied'), 'success', 2000);
+}
+
+function applyBg() {
+  const layer = document.getElementById('main-bg-layer');
+  layer.querySelectorAll('img').forEach(i => { if (i.src.startsWith('blob:')) URL.revokeObjectURL(i.src); i.remove(); });
+  if (S.bgSlideTimer) { clearInterval(S.bgSlideTimer); S.bgSlideTimer = null; }
+  if (!S.bgImages.length) { layer.style.display = 'none'; return; }
+  if (S.bgSettings.mode === 'single' && !S.bgSettings.active_id) { layer.style.display = 'none'; return; }
+  layer.style.display = '';
+  const overlay = document.getElementById('main-bg-overlay');
+  const fx = S.bgSettings.fx || 'random';
+
+  if (S.bgSettings.mode === 'single') {
+    layer.className = ''; layer.id = 'main-bg-layer'; layer.classList.add('fx-fade');
+    const img = document.createElement('img');
+    _loadBgImg(img, S.bgSettings.active_id).then(() => img.classList.add('active'));
+    layer.insertBefore(img, overlay);
+  } else {
+    // 轮播：只用选中的图片，未选则用全部
+    layer.className = ''; layer.id = 'main-bg-layer'; layer.classList.add('fx-fade');
+    const selSet = new Set(S.bgSettings.selected_ids || []);
+    const slideImages = selSet.size > 0
+      ? S.bgImages.filter(bg => selSet.has(bg.id))
+      : S.bgImages;
+    if (!slideImages.length) { layer.style.display = 'none'; return; }
+    slideImages.forEach((bg, i) => {
+      const img = document.createElement('img');
+      _loadBgImg(img, bg.id).then(() => { if (i === 0) img.classList.add('active'); });
+      layer.insertBefore(img, overlay);
+    });
+    S.bgSlideIdx = 0;
+    if (slideImages.length > 1) {
+      S.bgSlideTimer = setInterval(() => _bgTransition(layer, fx), S.bgSettings.interval * 1000);
+    }
+  }
+}
+
+const _FX_LIST = ['fade','slide','zoom','blur'];
+function _bgTransition(layer, fx) {
+  const imgs = layer.querySelectorAll('img');
+  if (imgs.length < 2) return;
+  const cur = imgs[S.bgSlideIdx];
+  S.bgSlideIdx = (S.bgSlideIdx + 1) % imgs.length;
+  const nxt = imgs[S.bgSlideIdx];
+
+  // random 模式：每次切换随机选一种效果
+  const useFx = (fx === 'random') ? _FX_LIST[Math.floor(Math.random() * _FX_LIST.length)] : fx;
+
+  // 先切换 layer 的 fx class（让 CSS transition 匹配）
+  layer.className = ''; layer.id = 'main-bg-layer';
+  layer.classList.add('fx-' + useFx);
+
+  // 清除所有过渡状态 class
+  imgs.forEach(i => { i.classList.remove('active','slide-out','slide-in','zoom-out','blur-out'); });
+
+  // 强制 reflow 让 CSS transition 重新生效
+  void layer.offsetHeight;
+
+  if (useFx === 'slide') {
+    cur.classList.add('slide-out');
+    nxt.classList.add('slide-in');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      nxt.classList.remove('slide-in');
+      nxt.classList.add('active');
+    }));
+  } else if (useFx === 'zoom') {
+    cur.classList.add('zoom-out');
+    nxt.classList.add('active');
+  } else if (useFx === 'blur') {
+    cur.classList.add('blur-out');
+    nxt.classList.add('active');
+  } else {
+    nxt.classList.add('active');
+  }
+}
+
+function clearBg() {
+  S.bgSettings.active_id = null;
+  applyBg();
+  apiFetch('/api/backgrounds/settings', {
+    method:'PUT', body: JSON.stringify({mode:S.bgSettings.mode, interval:S.bgSettings.interval, active_id:null})
+  }).catch(()=>{});
+  closeModal('background');
+  notify(T('bg.cleared'), 'info', 2000);
+}
+
+// ── 搜索 ──────────────────────────────────────────────────────────
+let _searchTimer = null;
+document.getElementById('search-input').addEventListener('input', ev => {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => {
+    S.searchQ = ev.target.value.trim();
+    S.filterCat = null; S.filterArtist = null;
+    setTxt('main-title', S.searchQ ? `SEARCH: ${S.searchQ.toUpperCase()}` : T('view.all'));
+    loadSongs(); saveState();
+  }, 400);
+});
+document.getElementById('search-input').addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && S.songs.length) playSongAt(0);
+});
+
+// ── 视图切换 ──────────────────────────────────────────────────────
+async function switchView(view) {
+  S.currentView = view; S.filterCat = null; S.filterArtist = null; S.searchQ = '';
+  document.querySelectorAll('.nav-item[data-view]').forEach(e => e.classList.remove('active'));
+  document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add('active');
+  if (view !== 'playlist') document.getElementById('song-list-view').classList.remove('pl-mode');
+  // admin view toggle
+  const adminView = document.getElementById('admin-view');
+  const mainHeader = document.querySelector('.main-header');
+  const songListView = document.getElementById('song-list-view');
+  if (view === 'admin') {
+    if (!S.user?.is_admin) { openModal('login'); return; }
+    mainHeader.style.display = 'none';
+    songListView.style.display = 'none';
+    document.getElementById('filter-bar').style.display = 'none';
+    adminView.classList.add('active');
+    loadAdminStats();
+    saveState();
+    return;
+  } else {
+    adminView.classList.remove('active');
+    mainHeader.style.display = '';
+    songListView.style.display = '';
+  }
+  if (view === 'all') {
+    setTxt('main-title', T('view.all'));
+    document.getElementById('filter-bar').style.display = '';
+    renderFilterBar(); loadSongs();
+  } else if (view === 'hot') {
+    setTxt('main-title', T('view.hot'));
+    document.getElementById('filter-bar').style.display = 'none';
+    const r = await apiFetch('/api/charts/hot-songs?limit=20');
+    S.songs = await r.json(); S.currentIndex = -1; renderSongList();
+  } else if (view === 'history') {
+    if (!S.user) { openModal('login'); return; }
+    setTxt('main-title', T('view.history'));
+    document.getElementById('filter-bar').style.display = 'none';
+    const r = await apiFetch('/api/user/history?limit=50');
+    S.songs = await r.json(); S.currentIndex = -1; renderSongList();
+  } else if (view === 'playlist') {
+    if (!S.user) { openModal('login'); return; }
+    renderPlaylistMainView();
+  }
+  saveState();
+}
+
+// ── 管理后台 ──────────────────────────────────────────────────────
+
+function adminTh(...labels) {
+  const tr = document.createElement('tr');
+  labels.forEach(l => { const th = document.createElement('th'); th.textContent = T(l)||l; tr.appendChild(th); });
+  return tr;
+}
+function adminTd(content, cls) {
+  const td = document.createElement('td');
+  if (content instanceof Node) td.appendChild(content);
+  else td.textContent = content ?? '';
+  if (cls) td.className = cls;
+  return td;
+}
+function statusBadge(status) {
+  const badge = document.createElement('span');
+  const map = { pending: ['badge badge-pending', T('admin.filter.pending')],
+                approved: ['badge badge-approved', T('admin.filter.approved')],
+                rejected: ['badge badge-rejected', T('admin.filter.rejected')] };
+  const [cls, lbl] = map[status] || ['badge', status];
+  badge.className = cls; badge.textContent = lbl; return badge;
+}
+function fmtSize(bytes) {
+  if (!bytes) return '-';
+  return bytes > 1048576 ? (bytes/1048576).toFixed(1)+'MB' : (bytes/1024).toFixed(0)+'KB';
+}
+function fmtDate(dt) {
+  if (!dt) return '-';
+  return (dt+'').slice(0, 16).replace('T',' ');
+}
+
+async function loadAdminStats() {
+  const r = await apiFetch('/api/admin/stats');
+  if (!r.ok) return;
+  const d = await r.json();
+  // stat cards
+  const cards = document.getElementById('admin-stat-cards');
+  cards.innerHTML = '';
+  const cardData = [
+    [d.user_count, 'admin.col.uploads', ''],
+    [d.song_total, 'admin.tab.stats', ''],
+    [d.song_pending, 'admin.filter.pending', 'warn'],
+    [d.song_approved, 'admin.filter.approved', 'ok'],
+    [d.song_rejected, 'admin.filter.rejected', 'err'],
+  ];
+  const cardLabels = [T('admin.col.uploads')+' 用户', '总歌曲', T('admin.filter.pending'),
+                      T('admin.filter.approved'), T('admin.filter.rejected')];
+  [[d.user_count,'用户总数',''],
+   [d.song_total,'歌曲总数',''],
+   [d.song_pending,T('admin.filter.pending'),'warn'],
+   [d.song_approved,T('admin.filter.approved'),'ok'],
+   [d.song_rejected,T('admin.filter.rejected'),'err'],
+  ].forEach(([val,lbl,cls]) => {
+    const c = document.createElement('div');
+    c.className = 'stat-card' + (cls ? ' '+cls : '');
+    c.innerHTML = '';
+    const v = document.createElement('div'); v.className = 'sc-val'; v.textContent = val;
+    const l = document.createElement('div'); l.className = 'sc-lbl'; l.textContent = lbl;
+    c.appendChild(v); c.appendChild(l); cards.appendChild(c);
+  });
+  // category table
+  const catDiv = document.getElementById('admin-cat-table');
+  catDiv.innerHTML = '';
+  if (d.categories?.length) {
+    const tbl = document.createElement('table'); tbl.className = 'admin-table';
+    const thead = document.createElement('thead'); thead.appendChild(adminTh('admin.cats','admin.col.songs'));
+    tbl.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    d.categories.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.appendChild(adminTd(c.name)); tr.appendChild(adminTd(c.count));
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); catDiv.appendChild(tbl);
+  }
+  // user stats table
+  const udiv = document.getElementById('admin-user-stats-table');
+  udiv.innerHTML = '';
+  if (d.users?.length) {
+    const tbl = document.createElement('table'); tbl.className = 'admin-table';
+    const thead = document.createElement('thead');
+    thead.appendChild(adminTh('admin.col.uploader','admin.col.songs','admin.col.uploads',
+                               'admin.col.credits','admin.filter.pending'));
+    tbl.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    d.users.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.appendChild(adminTd(u.username)); tr.appendChild(adminTd(u.song_count));
+      tr.appendChild(adminTd(u.upload_count)); tr.appendChild(adminTd(u.download_credits));
+      tr.appendChild(adminTd(u.pending_count || 0));
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); udiv.appendChild(tbl);
+  }
+}
+
+let _reviewStatus = 'pending';
+async function loadAdminReview(status) {
+  _reviewStatus = status || _reviewStatus;
+  document.querySelectorAll('#admin-pane-review .admin-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.status === _reviewStatus);
+  });
+  const r = await apiFetch(`/api/admin/songs?status=${_reviewStatus}&limit=50`);
+  if (!r.ok) return;
+  const d = await r.json();
+  const div = document.getElementById('admin-review-table');
+  div.innerHTML = '';
+  if (!d.songs?.length) { div.textContent = T('admin.no-data'); return; }
+  const tbl = document.createElement('table'); tbl.className = 'admin-table';
+  const thead = document.createElement('thead');
+  thead.appendChild(adminTh('admin.col.title','admin.col.artist','admin.col.uploader',
+                             'admin.col.date','admin.col.status','admin.col.action'));
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  d.songs.forEach(s => {
+    const tr = document.createElement('tr');
+    if (s.review_status === 'pending') tr.className = 'pending-row';
+    tr.appendChild(adminTd(s.title || s.filename));
+    tr.appendChild(adminTd(s.artist || '-'));
+    tr.appendChild(adminTd(s.uploader_name || '-'));
+    tr.appendChild(adminTd(fmtDate(s.created_at)));
+    tr.appendChild(adminTd(statusBadge(s.review_status)));
+    const actTd = document.createElement('td');
+    actTd.style.cssText = 'display:flex;gap:4px';
+    const revBtn = document.createElement('button');
+    revBtn.className = 'admin-btn'; revBtn.textContent = T('admin.tab.review');
+    revBtn.onclick = () => openReviewModal(s);
+    const renBtn = el('button', {class:'admin-btn'}, '✎');
+    renBtn.title = 'Rename';
+    renBtn.onclick = () => { renameSong(s); loadAdminReview(_reviewStatus); };
+    actTd.append(revBtn, renBtn);
+    tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody); div.appendChild(tbl);
+}
+
+let _reviewingSong = null;
+function openReviewModal(song) {
+  _reviewingSong = song;
+  const meta = document.getElementById('review-meta');
+  meta.innerHTML = '';
+  const fields = [
+    [T('admin.col.title'), song.title || song.filename],
+    [T('admin.col.artist'), song.artist || '-'],
+    [T('admin.col.uploader'), song.uploader_name || '-'],
+    [T('admin.col.date'), fmtDate(song.created_at)],
+    [T('admin.col.status'), null],
+  ];
+  fields.forEach(([lbl, val]) => {
+    const row = document.createElement('div');
+    const l = document.createElement('span'); l.className = 'rm-label'; l.textContent = lbl + ': ';
+    row.appendChild(l);
+    if (val === null) row.appendChild(statusBadge(song.review_status));
+    else { const v = document.createTextNode(val); row.appendChild(v); }
+    meta.appendChild(row);
+  });
+  if (song.review_notes) {
+    const row = document.createElement('div');
+    const l = document.createElement('span'); l.className = 'rm-label'; l.textContent = '上次意见: ';
+    row.appendChild(l); row.appendChild(document.createTextNode(song.review_notes));
+    meta.appendChild(row);
+  }
+  // set audio src to stream endpoint
+  document.getElementById('review-audio').src = `/api/songs/${song.id}/stream`;
+  document.getElementById('review-notes').value = '';
+  document.getElementById('review-err').textContent = '';
+  document.querySelectorAll('input[name="review-action"]').forEach(r => r.checked = false);
+  openModal('review');
+}
+
+async function doReview() {
+  if (!_reviewingSong) return;
+  const action = document.querySelector('input[name="review-action"]:checked')?.value;
+  if (!action) { document.getElementById('review-err').textContent = '请选择通过或拒绝'; return; }
+  const notes = document.getElementById('review-notes').value.trim();
+  document.getElementById('review-err').textContent = '';
+  const r = await apiFetch(`/api/admin/songs/${_reviewingSong.id}/review`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ action, notes }),
+  });
+  const d = await r.json();
+  if (!r.ok) { document.getElementById('review-err').textContent = d.detail || '审核失败'; return; }
+  closeModal('review');
+  document.getElementById('review-audio').src = '';
+  notify(action === 'approve' ? T('admin.approve-ok') : T('admin.reject-ok'), 'info', 2000);
+  loadAdminReview(_reviewStatus);
+}
+
+async function loadAdminUsers() {
+  const r = await apiFetch('/api/admin/users?limit=100');
+  if (!r.ok) return;
+  const d = await r.json();
+  const div = document.getElementById('admin-users-table');
+  div.replaceChildren();
+  if (!d.users?.length) { div.textContent = T('admin.no-data'); return; }
+  const tbl = document.createElement('table'); tbl.className = 'admin-table';
+  const thead = document.createElement('thead');
+  thead.appendChild(adminTh('admin.col.uploader','admin.col.songs','admin.col.uploads',
+                             'admin.col.credits','admin.col.plays','admin.col.date','admin.col.action'));
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  d.users.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.appendChild(adminTd(u.username)); tr.appendChild(adminTd(u.song_count));
+    tr.appendChild(adminTd(u.upload_count)); tr.appendChild(adminTd(u.download_credits));
+    tr.appendChild(adminTd(u.total_plays || 0)); tr.appendChild(adminTd(fmtDate(u.created_at)));
+    const acts = document.createElement('td');
+    if (u.song_count > 0) {
+      const btn = el('button', {class:'admin-btn'}, '♪');
+      btn.title = 'View songs';
+      btn.addEventListener('click', () => loadAdminUserSongs(u.id, u.username));
+      acts.appendChild(btn);
+    }
+    tr.appendChild(acts);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody); div.appendChild(tbl);
+}
+
+async function loadAdminUserSongs(userId, username) {
+  const r = await apiFetch(`/api/admin/users/${userId}/songs?limit=200`);
+  if (!r.ok) return;
+  const d = await r.json();
+  const div = document.getElementById('admin-users-table');
+  div.replaceChildren();
+  // 返回按钮
+  const backBtn = el('button', {class:'admin-btn', style:'margin-bottom:10px'}, '← ' + (currentLang==='zh'?'返回用户列表':'Back to users'));
+  backBtn.addEventListener('click', loadAdminUsers);
+  div.appendChild(backBtn);
+  div.appendChild(el('div', {class:'admin-section-title'}, `${username} — ${d.total} songs`));
+  if (!d.songs?.length) { div.appendChild(el('div', {style:'padding:12px;color:var(--text-dim)'}, T('admin.no-data'))); return; }
+  const tbl = document.createElement('table'); tbl.className = 'admin-table';
+  const thead = document.createElement('thead');
+  thead.appendChild(adminTh('ID','admin.col.title','admin.col.artist','admin.cats','admin.col.status','admin.col.action'));
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  d.songs.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.appendChild(adminTd(s.id));
+    tr.appendChild(adminTd(s.title || s.filename));
+    tr.appendChild(adminTd(s.artist || '-'));
+    tr.appendChild(adminTd(s.category_name || '-'));
+    tr.appendChild(adminTd(statusBadge(s.review_status)));
+    const acts = document.createElement('td');
+    acts.style.cssText = 'display:flex;gap:4px';
+    // 改名
+    const renBtn = el('button', {class:'admin-btn'}, '✎');
+    renBtn.title = 'Rename';
+    renBtn.addEventListener('click', () => renameSong(s));
+    acts.appendChild(renBtn);
+    // 共享控制
+    const shareBtn = el('button', {class: s.is_shared ? 'admin-btn approve' : 'admin-btn reject'},
+      s.is_shared ? '◉' : '○');
+    shareBtn.title = s.is_shared ? 'Shared (click to hide)' : 'Hidden (click to share)';
+    shareBtn.addEventListener('click', async () => {
+      await apiFetch(`/api/admin/songs/${s.id}/share`, {
+        method:'PUT', body: JSON.stringify({shared: !s.is_shared})
+      });
+      loadAdminUserSongs(userId, username);
+    });
+    acts.appendChild(shareBtn);
+    tr.appendChild(acts);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody); div.appendChild(tbl);
+}
+
+function renameSong(song) {
+  const newTitle = prompt(currentLang==='zh'?'歌曲标题:':'Song title:', song.title || song.filename || '');
+  if (!newTitle) return;
+  const newArtist = prompt(currentLang==='zh'?'歌手:':'Artist:', song.artist || '');
+  apiFetch(`/api/admin/songs/${song.id}/rename`, {
+    method:'PUT', body: JSON.stringify({title: newTitle, artist: newArtist || ''})
+  }).then(r => r.json()).then(d => {
+    if (d.message) notify(d.message, 'success', 2000);
+    else notify(d.detail || 'Error', 'error');
+  });
+}
+
+async function loadAdminUploadLog() {
+  const r = await apiFetch('/api/admin/logs/upload?limit=100');
+  if (!r.ok) return;
+  const d = await r.json();
+  const div = document.getElementById('admin-upload-log-table');
+  div.innerHTML = '';
+  if (!d.logs?.length) { div.textContent = T('admin.no-data'); return; }
+  const tbl = document.createElement('table'); tbl.className = 'admin-table';
+  const thead = document.createElement('thead');
+  thead.appendChild(adminTh('admin.col.date','admin.col.title','admin.col.artist',
+                             'admin.col.uploader','admin.col.size','admin.col.status'));
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  d.logs.forEach(l => {
+    const tr = document.createElement('tr');
+    tr.appendChild(adminTd(fmtDate(l.created_at))); tr.appendChild(adminTd(l.title || l.filename));
+    tr.appendChild(adminTd(l.artist || '-')); tr.appendChild(adminTd(l.uploader || '-'));
+    tr.appendChild(adminTd(fmtSize(l.file_size))); tr.appendChild(adminTd(statusBadge(l.review_status)));
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody); div.appendChild(tbl);
+}
+
+async function loadAdminDlLog() {
+  const r = await apiFetch('/api/admin/logs/download?limit=100');
+  if (!r.ok) return;
+  const d = await r.json();
+  const div = document.getElementById('admin-dl-log-table');
+  div.innerHTML = '';
+  if (!d.logs?.length) { div.textContent = T('admin.no-data'); return; }
+  const tbl = document.createElement('table'); tbl.className = 'admin-table';
+  const thead = document.createElement('thead');
+  thead.appendChild(adminTh('admin.col.date','admin.col.title','admin.col.artist','admin.col.uploader'));
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  d.logs.forEach(l => {
+    const tr = document.createElement('tr');
+    tr.appendChild(adminTd(fmtDate(l.downloaded_at))); tr.appendChild(adminTd(l.title || '-'));
+    tr.appendChild(adminTd(l.artist || '-')); tr.appendChild(adminTd(l.downloader || '-'));
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody); div.appendChild(tbl);
+}
+
+// ── 删除申请管理 ──────────────────────────────────────────────────
+async function loadAdminDelReq() {
+  const r = await apiFetch('/api/admin/delete-requests?status=pending');
+  if (!r.ok) return;
+  const reqs = await r.json();
+  const div = document.getElementById('admin-del-req-table');
+  div.replaceChildren();
+  if (!reqs.length) {
+    div.textContent = currentLang==='zh'?'暂无待审核的删除申请':'No pending delete requests';
+    return;
+  }
+  reqs.forEach(dr => {
+    const card = el('div', {style:'background:var(--bg-card);border:1px solid var(--border-lit);border-radius:4px;padding:14px;margin-bottom:10px'});
+
+    // 标题行：歌曲信息
+    const title = el('div', {style:'font-family:var(--font-mono);font-size:13px;color:var(--text-bright);margin-bottom:8px'});
+    title.textContent = `#${dr.id} — ${dr.title || dr.filename || '?'} — ${dr.artist || ''}`;
+    card.appendChild(title);
+
+    // 信息网格
+    const grid = el('div', {style:'display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-family:var(--font-mono);font-size:11px;margin-bottom:10px'});
+    const zh = currentLang === 'zh';
+    const info = [
+      [zh?'申请人':'Requester', dr.username || '-'],
+      [zh?'分类':'Category', dr.category_name || '-'],
+      [zh?'文件大小':'Size', fmtSize(dr.file_size)],
+      [zh?'播放次数':'Plays', dr.play_count || 0],
+      [zh?'用户保有歌曲':'Songs owned', dr.user_songs_owned ?? '-'],
+      [zh?'用户下载文件数(去重)':'Unique downloads', dr.user_unique_downloads ?? '-'],
+      [zh?'用户上传配额':'Upload count', dr.upload_count ?? '-'],
+      [zh?'用户下载配额':'DL credits', dr.download_credits ?? '-'],
+    ];
+    info.forEach(([label, val]) => {
+      const lbl = el('span', {style:'color:var(--text-dim)'});
+      lbl.textContent = label + ':';
+      const v = el('span', {style:'color:var(--text-bright)'});
+      v.textContent = String(val);
+      grid.append(lbl, v);
+    });
+    card.appendChild(grid);
+
+    // 删除理由
+    const reasonDiv = el('div', {style:'background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:8px;font-family:var(--font-mono);font-size:11px;color:var(--orange);margin-bottom:10px'});
+    reasonDiv.textContent = (zh?'删除理由: ':'Reason: ') + dr.reason;
+    card.appendChild(reasonDiv);
+
+    // 申请时间
+    const timeDiv = el('div', {style:'font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:10px'});
+    timeDiv.textContent = fmtDate(dr.created_at);
+    card.appendChild(timeDiv);
+
+    // 操作按钮
+    const acts = el('div', {style:'display:flex;gap:8px'});
+    const appBtn = el('button',{class:'admin-btn approve'},'✓ ' + (zh?'批准删除':'Approve'));
+    appBtn.addEventListener('click', async () => {
+      const notes = prompt(zh?'审核意见(可选):':'Notes (optional):') || '';
+      const r = await apiFetch(`/api/admin/delete-requests/${dr.id}/review`,{
+        method:'POST', body:JSON.stringify({action:'approve',notes})
+      });
+      const d = await r.json();
+      notify(d.message||d.detail,'info',2000);
+      loadAdminDelReq();
+    });
+    const rejBtn = el('button',{class:'admin-btn reject'},'✕ ' + (zh?'驳回':'Reject'));
+    rejBtn.addEventListener('click', async () => {
+      const notes = prompt(zh?'驳回理由:':'Rejection reason:') || '';
+      const r = await apiFetch(`/api/admin/delete-requests/${dr.id}/review`,{
+        method:'POST', body:JSON.stringify({action:'reject',notes})
+      });
+      const d = await r.json();
+      notify(d.message||d.detail,'info',2000);
+      loadAdminDelReq();
+    });
+    acts.append(appBtn, rejBtn);
+    card.appendChild(acts);
+    div.appendChild(card);
+  });
+}
+
+// ── 分类管理 ──────────────────────────────────────────────────────
+async function loadAdminCats() {
+  const div = document.getElementById('admin-cats-table');
+  div.replaceChildren();
+
+  // 加载系统分类
+  const r1 = await apiFetch('/api/admin/categories');
+  if (!r1.ok) return;
+  const cats = await r1.json();
+  const sysCats = cats.filter(c => c.is_system);
+  const userCats = cats.filter(c => !c.is_system);
+
+  // 系统分类表
+  div.appendChild(el('div', {class:'admin-section-title'}, currentLang==='zh' ? '系统分类' : 'SYSTEM CATEGORIES'));
+  if (sysCats.length) div.appendChild(_buildCatTable(sysCats));
+  else div.appendChild(el('div', {style:'padding:8px;color:var(--text-dim)'}, T('admin.no-data')));
+
+  // 用户分类表
+  div.appendChild(el('div', {class:'admin-section-title', style:'margin-top:18px'}, currentLang==='zh' ? '用户创建的分类' : 'USER CATEGORIES'));
+  if (userCats.length) div.appendChild(_buildCatTable(userCats, true));
+  else div.appendChild(el('div', {style:'padding:8px;color:var(--text-dim)'}, T('admin.no-data')));
+
+  // 加载用户播放列表
+  const r2 = await apiFetch('/api/admin/playlists');
+  if (r2.ok) {
+    const pls = await r2.json();
+    div.appendChild(el('div', {class:'admin-section-title', style:'margin-top:18px'}, currentLang==='zh' ? '用户播放列表' : 'USER PLAYLISTS'));
+    if (pls.length) div.appendChild(_buildPlTable(pls));
+    else div.appendChild(el('div', {style:'padding:8px;color:var(--text-dim)'}, T('admin.no-data')));
+  }
+}
+
+function _buildCatTable(cats, showCreator) {
+  const tbl = document.createElement('table'); tbl.className = 'admin-table';
+  const thead = document.createElement('thead');
+  const headers = ['ID','admin.cats','admin.col.songs'];
+  if (showCreator) headers.push('admin.col.uploader');
+  headers.push('admin.col.action');
+  thead.appendChild(adminTh(...headers));
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  cats.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.appendChild(adminTd(c.id));
+    tr.appendChild(adminTd(c.name + (c.description ? ` — ${c.description}` : '')));
+    tr.appendChild(adminTd(c.real_count ?? c.song_count ?? 0));
+    if (showCreator) tr.appendChild(adminTd(c.creator_name || '-'));
+    const acts = document.createElement('td');
+    acts.style.cssText = 'display:flex;gap:4px';
+    const renBtn = el('button',{class:'admin-btn'},'✎');
+    renBtn.title = 'Rename';
+    renBtn.addEventListener('click', () => {
+      const name = prompt(currentLang==='zh'?'新名称:':'New name:', c.name);
+      if (name && name !== c.name) _catAction(`/api/admin/categories/${c.id}/rename`,'PUT',{name});
+    });
+    const merBtn = el('button',{class:'admin-btn'},'⇶');
+    merBtn.title = 'Merge';
+    merBtn.addEventListener('click', () => {
+      const tid = prompt(currentLang==='zh'?'合并到分类ID:':'Merge into category ID:');
+      if (tid) _catAction(`/api/admin/categories/${c.id}/merge`,'POST',{target_id:Number(tid)});
+    });
+    const delBtn = el('button',{class:'admin-btn reject'},'✕');
+    delBtn.title = 'Delete';
+    delBtn.addEventListener('click', () => {
+      const cnt = c.real_count ?? c.song_count ?? 0;
+      if (cnt > 0) {
+        if (!confirm(currentLang==='zh'
+          ? `"${c.name}" 下有 ${cnt} 首歌曲，是否连同系统歌曲一起删除？`
+          : `"${c.name}" has ${cnt} songs. Delete with system songs?`)) return;
+        _catAction(`/api/admin/categories/${c.id}?delete_songs=true`, 'DELETE');
+      } else {
+        _catAction(`/api/admin/categories/${c.id}?delete_songs=false`, 'DELETE');
+      }
+    });
+    acts.append(renBtn, merBtn, delBtn);
+    tr.appendChild(acts);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  return tbl;
+}
+
+function _buildPlTable(pls) {
+  const tbl = document.createElement('table'); tbl.className = 'admin-table';
+  const thead = document.createElement('thead');
+  thead.appendChild(adminTh('ID','admin.cats','admin.col.songs','admin.col.uploader','admin.col.action'));
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  pls.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.appendChild(adminTd(p.id));
+    tr.appendChild(adminTd(p.name));
+    tr.appendChild(adminTd(p.song_count || 0));
+    tr.appendChild(adminTd(p.owner_name || '-'));
+    const acts = document.createElement('td');
+    const renBtn = el('button',{class:'admin-btn'},'✎');
+    renBtn.title = 'Rename';
+    renBtn.addEventListener('click', () => {
+      const name = prompt(currentLang==='zh'?'新名称:':'New name:', p.name);
+      if (name && name !== p.name) {
+        apiFetch(`/api/admin/playlists/${p.id}/rename`,{method:'PUT',body:JSON.stringify({name})})
+          .then(r=>r.json()).then(d=>{
+            if(d.message){notify(d.message,'success',2000);loadAdminCats();}
+            else notify(d.detail||'Error','error');
+          });
+      }
+    });
+    acts.appendChild(renBtn);
+    tr.appendChild(acts);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  return tbl;
+}
+async function _catAction(url, method, body) {
+  const opts = { method };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await apiFetch(url, opts);
+  const d = await r.json();
+  if (r.ok) { notify(d.message||'OK','success',2000); loadAdminCats(); loadCategories(); }
+  else notify(d.detail||'Error','error',3000);
+}
+async function adminCreateCat() {
+  const name = document.getElementById('admin-new-cat-name').value.trim();
+  const desc = document.getElementById('admin-new-cat-desc').value.trim();
+  if (!name) return;
+  await _catAction('/api/admin/categories','POST',{name, description:desc});
+  document.getElementById('admin-new-cat-name').value = '';
+  document.getElementById('admin-new-cat-desc').value = '';
+}
+
+// ── 播放列表 UI ────────────────────────────────────────────────────
+async function openPlaylistManager() {
+  if (!S.user) { openModal('login'); return; }
+  document.getElementById('new-playlist-name').value = '';
+  document.getElementById('playlist-err').textContent = '';
+  openModal('playlist');
+  await loadPlaylistsForManager();
+}
+async function loadPlaylistsForManager() {
+  const list = document.getElementById('playlist-list');
+  list.replaceChildren(el('div', {style:'text-align:center;padding:16px'}, el('div', {class:'spinner'})));
+  try {
+    const r = await apiFetch('/api/user/playlists');
+    if (!r.ok) throw new Error();
+    const pls = await r.json();
+    list.replaceChildren();
+    if (!pls.length) {
+      list.append(el('div', {class:'empty-hint', style:'padding:16px;text-align:center'}, T('pl.empty')));
+      return;
+    }
+    pls.forEach(pl => {
+      const item = el('div', {class:'playlist-item'});
+      const info = el('div', {style:'flex:1;overflow:hidden'});
+      const nm = el('div', {class:'playlist-name'});
+      nm.textContent = pl.name;
+      const cnt = el('div', {class:'playlist-count'});
+      cnt.textContent = `${pl.song_count || 0} ${T('pl.tracks')}`;
+      info.append(nm, cnt);
+      const playBtn = el('button', {class:'playlist-play-btn'}, T('pl.play'));
+      playBtn.addEventListener('click', e => { e.stopPropagation(); playPlaylist(pl.id, pl.name); });
+      item.append(info, playBtn);
+      list.append(item);
+    });
+  } catch(e) {
+    list.replaceChildren(el('div', {class:'empty-hint', style:'padding:12px;text-align:center'}, T('pl.fail')));
+  }
+}
+async function doCreatePlaylist() {
+  const name = document.getElementById('new-playlist-name').value.trim();
+  const errEl = document.getElementById('playlist-err');
+  errEl.textContent = '';
+  if (!name) { errEl.textContent = T('pl.err-empty'); return; }
+  const btn = document.getElementById('btn-create-playlist');
+  btn.disabled = true;
+  try {
+    const r = await apiFetch('/api/user/playlists', {
+      method: 'POST', body: JSON.stringify({ name })
+    });
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.detail || T('pl.err-fail'); return; }
+    document.getElementById('new-playlist-name').value = '';
+    notify(T('pl.ok', name), 'success', 2000);
+    await loadPlaylistsForManager();
+  } catch(e) { errEl.textContent = T('pl.err-net'); }
+  finally { btn.disabled = false; }
+}
+async function playPlaylist(playlistId, name) {
+  closeModal('playlist');
+  setTxt('main-title', name.slice(0,30).toUpperCase());
+  document.getElementById('filter-bar').style.display = 'none';
+  try {
+    const r = await apiFetch(`/api/user/playlists/${playlistId}/songs`);
+    if (!r.ok) throw new Error();
+    S.songs = await r.json();
+    S.currentIndex = -1;
+    setTxt('main-subtitle', `${S.songs.length} ${T('song.tracks')}`);
+    renderSongList();
+    if (S.songs.length) { buildShuffled(); playSongAt(0); }
+    else notify(T('pl.is-empty'), 'info');
+  } catch(e) { notify(T('pl.load-err'), 'error'); }
+}
+
+// ── 播放列表主视图（嵌入式两列布局） ─────────────────────────────────
+async function renderPlaylistMainView() {
+  if (!S.user) { openModal('login'); return; }
+  setTxt('main-title', T('view.playlist'));
+  setTxt('main-subtitle', '');
+  document.getElementById('filter-bar').style.display = 'none';
+
+  const container = document.getElementById('song-list-view');
+  container.classList.add('pl-mode');
+  const split     = el('div', {class:'pl-split'});
+  const listPane  = el('div', {class:'pl-list-pane', id:'pl-list-pane'});
+  const songsPane = el('div', {class:'pl-songs-pane', id:'pl-songs-pane'});
+  songsPane.append(el('div', {class:'empty-state'},
+    el('div', {class:'icon'}, '≡'),
+    el('p', {}, T('pl.select'))
+  ));
+  split.append(listPane, songsPane);
+  container.replaceChildren(split);
+  await loadPlaylistListPane();
+}
+
+async function loadPlaylistListPane() {
+  const pane = document.getElementById('pl-list-pane');
+  if (!pane) return;
+  pane.replaceChildren(el('div', {style:'text-align:center;padding:24px'}, el('div', {class:'spinner'})));
+  try {
+    const r = await apiFetch('/api/user/playlists');
+    if (!r.ok) throw new Error();
+    const pls = await r.json();
+    pane.replaceChildren();
+    if (!pls.length) {
+      pane.append(el('div', {class:'empty-state', style:'height:160px'},
+        el('div', {class:'icon', style:'font-size:24px'}, '≡'),
+        el('p', {}, T('pl.none'))
+      ));
+      return;
+    }
+    pls.forEach(pl => {
+      const item = el('div', {class:'pl-item', 'data-plid': String(pl.id)});
+      const nm  = el('div', {class:'pl-item-name'});
+      nm.textContent = pl.name;
+      const cnt = el('div', {class:'pl-item-count'});
+      cnt.textContent = `${pl.song_count || 0} ${T('pl.tracks')}`;
+      item.append(nm, cnt);
+      item.addEventListener('click', () => selectPlaylistPane(pl.id, pl.name, item));
+      pane.append(item);
+    });
+  } catch(e) {
+    pane.replaceChildren(el('div', {class:'empty-state', style:'height:160px'}, el('p', {}, T('pl.fail'))));
+  }
+}
+
+async function selectPlaylistPane(playlistId, name, itemEl) {
+  document.querySelectorAll('.pl-item').forEach(e => e.classList.remove('active'));
+  if (itemEl) itemEl.classList.add('active');
+  setTxt('main-subtitle', name.slice(0,30).toUpperCase());
+
+  const pane = document.getElementById('pl-songs-pane');
+  if (!pane) return;
+  pane.replaceChildren(el('div', {style:'text-align:center;padding:30px'}, el('div', {class:'spinner'})));
+  try {
+    const r = await apiFetch(`/api/user/playlists/${playlistId}/songs`);
+    if (!r.ok) throw new Error();
+    const songs = await r.json();
+    pane.replaceChildren();
+
+    // Header bar
+    const hdr = el('div', {class:'pl-songs-header'});
+    const ttl = el('div', {class:'main-title', style:'font-size:11px'});
+    ttl.textContent = name.slice(0,30).toUpperCase();
+    const sub = el('div', {class:'main-subtitle'});
+    sub.textContent = `${songs.length} ${T('song.tracks')}`;
+    const playAllBtn = el('button', {class:'btn-primary', style:'margin-left:auto;padding:4px 12px;font-size:10px'}, T('pl.play-all'));
+    playAllBtn.addEventListener('click', () => {
+      if (!songs.length) { notify(T('pl.is-empty'), 'info'); return; }
+      S.songs = songs; S.currentIndex = -1; buildShuffled(); playSongAt(0);
+    });
+    hdr.append(ttl, sub, playAllBtn);
+    pane.append(hdr);
+
+    if (!songs.length) {
+      pane.append(el('div', {class:'empty-state'}, el('div', {class:'icon'}, '♪'), el('p', {}, T('pl.songs-empty'))));
+      return;
+    }
+    const scroll = el('div', {class:'pl-songs-scroll'});
+    songs.forEach((s, i) => {
+      const row = el('div', {class:'pl-songs-row'});
+      const numDiv = el('div', {class:'song-num'}, String(i+1));
+      const info   = el('div', {class:'song-info'},
+        el('div', {class:'song-title'}, s.title || s.filename || '--'),
+        el('div', {class:'song-artist'}, s.artist || '--')
+      );
+      const dur  = el('div', {class:'song-duration'}, formatDur(s.duration));
+      const acts = el('div', {class:'song-actions'});
+      const playBtn = el('button', {class:'song-action-btn', title:T('pl.play-btn')}, '▶');
+      playBtn.addEventListener('click', ev => {
+        ev.stopPropagation();
+        S.songs = songs; S.currentIndex = -1; buildShuffled(); playSongAt(i);
+      });
+      acts.append(playBtn);
+      row.append(numDiv, info, dur, acts);
+      row.addEventListener('click', () => { S.songs = songs; S.currentIndex = -1; buildShuffled(); playSongAt(i); });
+      scroll.append(row);
+    });
+    pane.append(scroll);
+  } catch(e) {
+    pane.replaceChildren(el('div', {class:'empty-state'}, el('p', {}, T('pl.fail'))));
+  }
+}
+
+function showNewPlaylistForm() {
+  if (!S.user) { openModal('login'); return; }
+  setTxt('main-title', T('pl.new-title'));
+  setTxt('main-subtitle', '');
+  document.getElementById('filter-bar').style.display = 'none';
+
+  const container = document.getElementById('song-list-view');
+  container.classList.add('pl-mode');
+  const wrap    = el('div', {style:'padding:32px 40px;max-width:420px'});
+  const label   = el('div', {class:'form-label', style:'letter-spacing:2px;margin-bottom:14px'}, T('pl.new-label'));
+  const input   = el('input', {class:'form-input', id:'pl-inline-name', placeholder:T('pl.new-ph'), maxlength:'50'});
+  const errEl   = el('div', {class:'form-error', id:'pl-inline-err', style:'margin-top:4px'});
+  const actions = el('div', {class:'form-actions', style:'margin-top:20px'});
+  const cancelBtn = el('button', {class:'btn-ghost'}, T('pl.new-cancel'));
+  cancelBtn.addEventListener('click', renderPlaylistMainView);
+  const createBtn = el('button', {class:'btn-primary', id:'pl-inline-create-btn', style:'flex:1'}, T('pl.new-create'));
+  createBtn.addEventListener('click', doInlineCreatePlaylist);
+  input.addEventListener('keydown', ev => { if (ev.key === 'Enter') doInlineCreatePlaylist(); });
+  actions.append(cancelBtn, createBtn);
+  wrap.append(label, input, errEl, actions);
+  container.replaceChildren(wrap);
+  setTimeout(() => input.focus(), 30);
+}
+
+async function doInlineCreatePlaylist() {
+  const input   = document.getElementById('pl-inline-name');
+  const errEl   = document.getElementById('pl-inline-err');
+  const createBtn = document.getElementById('pl-inline-create-btn');
+  if (!input) return;
+  const name = input.value.trim();
+  errEl.textContent = '';
+  if (!name) { errEl.textContent = T('pl.new-err-empty'); return; }
+  if (createBtn) { createBtn.disabled = true; createBtn.textContent = '...'; }
+  try {
+    const r = await apiFetch('/api/user/playlists', { method: 'POST', body: JSON.stringify({ name }) });
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.detail || T('pl.new-err-fail'); return; }
+    notify(T('pl.ok', name), 'success', 2000);
+    await renderPlaylistMainView();
+    const items = document.querySelectorAll('.pl-item');
+    items.forEach(item => {
+      if (item.querySelector('.pl-item-name')?.textContent === name) item.click();
+    });
+  } catch(e) { errEl.textContent = T('pl.new-err-net'); }
+  finally { if (createBtn) { createBtn.disabled = false; createBtn.textContent = T('pl.new-create'); } }
+}
+
+// ── 矩阵雨 ────────────────────────────────────────────────────────
+function initMatrix() {
+  const c = document.getElementById('matrix-canvas');
+  const ctx = c.getContext('2d');
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const chars = 'NEUROMIXGRID0123456789/*-+=@#$%';
+  const fs = 12, cols = Math.floor(c.width/fs);
+  const drops = new Array(cols).fill(1);
+  setInterval(() => {
+    ctx.fillStyle = 'rgba(3,5,9,0.05)';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = '#00ffe7'; ctx.font = `${fs}px Share Tech Mono`;
+    drops.forEach((y, i) => {
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*fs, y*fs);
+      if (y*fs > c.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }, 60);
+  window.addEventListener('resize', () => { c.width = window.innerWidth; c.height = window.innerHeight; });
+}
+
+// ── 键盘快捷键 ────────────────────────────────────────────────────
+document.addEventListener('keydown', ev => {
+  if (['INPUT','TEXTAREA'].includes(ev.target.tagName)) return;
+  if (ev.code === 'Space')      { ev.preventDefault(); togglePlay(); }
+  else if (ev.code === 'ArrowRight') nextSong();
+  else if (ev.code === 'ArrowLeft')  prevSong();
+  else if (ev.code === 'KeyM')       cycleMode();
+});
+
+// ── 事件绑定 ──────────────────────────────────────────────────────
+function bindEvents() {
+  document.getElementById('btn-login').addEventListener('click', () => openModal('login'));
+  document.getElementById('btn-register').addEventListener('click', () => openModal('register'));
+  document.getElementById('btn-logout').addEventListener('click', logout);
+  document.getElementById('btn-upload-top').addEventListener('click', () => openModal('upload'));
+  document.getElementById('btn-upload-panel').addEventListener('click', () => openModal('upload'));
+  document.getElementById('btn-do-login').addEventListener('click', doLogin);
+  document.getElementById('btn-do-register').addEventListener('click', doRegister);
+  document.getElementById('btn-do-upload').addEventListener('click', doUpload);
+  document.getElementById('login-cancel').addEventListener('click', () => closeModal('login'));
+  document.getElementById('reg-cancel').addEventListener('click', () => closeModal('register'));
+  document.getElementById('upload-cancel').addEventListener('click', () => closeModal('upload'));
+  document.getElementById('goto-register').addEventListener('click', () => { closeModal('login'); openModal('register'); });
+  document.getElementById('goto-login').addEventListener('click', () => { closeModal('register'); openModal('login'); });
+  document.getElementById('btn-play').addEventListener('click', togglePlay);
+  document.getElementById('btn-next').addEventListener('click', nextSong);
+  document.getElementById('btn-prev').addEventListener('click', prevSong);
+  document.getElementById('btn-mode').addEventListener('click', cycleMode);
+  document.getElementById('btn-play-mode').addEventListener('click', cycleMode);
+  document.getElementById('btn-shuffle').addEventListener('click', shufflePlay);
+  // 主内容区播放控制按钮
+  document.getElementById('main-btn-play').addEventListener('click', togglePlay);
+  document.getElementById('main-btn-prev').addEventListener('click', prevSong);
+  document.getElementById('main-btn-next').addEventListener('click', nextSong);
+  // 播放次数排序切换
+  document.getElementById('btn-sort-plays').addEventListener('click', cycleSortOrder);
+  document.querySelectorAll('.timer-btn').forEach(b => {
+    b.addEventListener('click', () => setTimer(Number(b.dataset.min)));
+  });
+  document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+    item.addEventListener('click', () => switchView(item.dataset.view));
+  });
+  // 语言切换
+  document.getElementById('btn-lang').addEventListener('click', toggleLang);
+  // 播放列表模态框（旧弹窗保留，已弃用主路径）
+  document.getElementById('playlist-cancel').addEventListener('click', () => closeModal('playlist'));
+  document.getElementById('btn-create-playlist').addEventListener('click', doCreatePlaylist);
+  // 管理后台
+  document.getElementById('btn-admin-back').addEventListener('click', () => switchView('all'));
+  document.getElementById('btn-admin-create-cat').addEventListener('click', adminCreateCat);
+  document.getElementById('review-cancel').addEventListener('click', () => {
+    document.getElementById('review-audio').src = ''; closeModal('review');
+  });
+  document.getElementById('btn-do-review').addEventListener('click', doReview);
+  document.querySelectorAll('#admin-pane-review .admin-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => loadAdminReview(btn.dataset.status));
+  });
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const pane = document.getElementById('admin-pane-' + tab.dataset.pane);
+      if (pane) pane.classList.add('active');
+      // lazy load on first show
+      const p = tab.dataset.pane;
+      if (p === 'review') loadAdminReview();
+      else if (p === 'del-req') loadAdminDelReq();
+      else if (p === 'cats') loadAdminCats();
+      else if (p === 'users') loadAdminUsers();
+      else if (p === 'log-upload') loadAdminUploadLog();
+      else if (p === 'log-dl') loadAdminDlLog();
+    });
+  });
+  document.getElementById('new-playlist-name').addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') doCreatePlaylist();
+  });
+  // 导航栏 + 按钮：新建播放列表（内联表单，不弹模态框）
+  document.getElementById('btn-nav-new-playlist').addEventListener('click', ev => {
+    ev.stopPropagation(); // 阻止冒泡到 nav-item，避免触发 switchView
+    showNewPlaylistForm();
+  });
+  // 背景图
+  document.getElementById('btn-background').addEventListener('click', openBgModal);
+  document.getElementById('bg-cancel').addEventListener('click', () => closeModal('background'));
+  document.getElementById('btn-bg-apply').addEventListener('click', applyBgSettings);
+  document.getElementById('btn-bg-clear').addEventListener('click', clearBg);
+  document.getElementById('bg-mode-select').addEventListener('change', () => {
+    S.bgSettings.mode = document.getElementById('bg-mode-select').value;
+    syncBgModeUI();
+    renderBgThumbs();
+  });
+  document.getElementById('bg-interval').addEventListener('input', ev => {
+    document.getElementById('bg-interval-val').textContent = ev.target.value + 's';
+  });
+  const _bgDrop = document.getElementById('bg-drop-zone');
+  const _bgInput = document.getElementById('bg-file-input');
+  _bgDrop.addEventListener('click', () => _bgInput.click());
+  _bgDrop.addEventListener('dragover', ev => { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); });
+  _bgDrop.addEventListener('dragleave', ev => ev.currentTarget.classList.remove('drag-over'));
+  _bgDrop.addEventListener('drop', ev => { ev.preventDefault(); ev.currentTarget.classList.remove('drag-over'); uploadBgFiles(ev.dataTransfer.files); });
+  _bgInput.addEventListener('change', ev => { uploadBgFiles(ev.target.files); ev.target.value=''; });
+  // 点击 overlay 关闭模态框
+  ['login','register','upload','playlist','background'].forEach(name => {
+    const ov = document.getElementById(`modal-${name}`);
+    if (ov) ov.addEventListener('click', ev => { if (ev.target === ov) closeModal(name); });
+  });
+  // Login 框 Enter 提交
+  ['login-user','login-pass'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keydown', ev => { if (ev.key === 'Enter') doLogin(); });
+  });
+}
+
+// ── 初始化 ────────────────────────────────────────────────────────
+async function init() {
+  initMatrix();
+  bindEvents();
+  applyLang();
+  loadAuth();
+
+  const saved = _getSaved();
+
+  // 恢复偏好：模式、排序、音量
+  if (saved.mode) S.mode = saved.mode;
+  if (saved.sort) S.sortOrder = saved.sort;
+  // 音量：优先用独立 key（跨会话持久），fallback 到 nm_state
+  const _vol = localStorage.getItem('nm_volume');
+  const vol = _vol != null ? Number(_vol) : saved.vol;
+  if (vol != null && !isNaN(vol)) {
+    audio.volume = vol;
+    document.getElementById('volume-slider').value = Math.round(vol * 100);
+  }
+
+  updateUserUI();
+  syncModeBtn();
+  // 同步排序按钮文字
+  const sortKeys = { default:'sort.default', desc:'sort.desc', asc:'sort.asc' };
+  const sortBtn = document.getElementById('btn-sort-plays');
+  if (sortBtn && sortKeys[S.sortOrder]) sortBtn.textContent = T(sortKeys[S.sortOrder]);
+
+  // 加载侧边栏
+  await Promise.all([loadCategories(), loadHotArtists()]);
+
+  // 恢复视图和筛选（admin 用户默认进入管理页面）
+  const view = (S.user?.is_admin && (!saved.view || saved.view === 'all')) ? 'admin' : (saved.view || 'all');
+  if (view === 'all') {
+    S.currentView = 'all';
+    S.filterCat = saved.cat || null;
+    S.filterArtist = saved.artist || null;
+    S.searchQ = saved.q || '';
+    if (S.searchQ) document.getElementById('search-input').value = S.searchQ;
+    // nav 高亮
+    document.querySelectorAll('.nav-item[data-view]').forEach(e => e.classList.remove('active'));
+    document.querySelector('.nav-item[data-view="all"]')?.classList.add('active');
+    // 标题
+    if (S.filterArtist) setTxt('main-title', S.filterArtist.toUpperCase());
+    else if (S.filterCat) {
+      const cn = S.categories.find(c => c.id === S.filterCat)?.name || '';
+      setTxt('main-title', cn.toUpperCase());
+    } else if (S.searchQ) setTxt('main-title', `SEARCH: ${S.searchQ.toUpperCase()}`);
+    document.getElementById('filter-bar').style.display = '';
+    renderCategoryNav(); renderFilterBar();
+    await loadSongs();
+  } else {
+    // 先加载默认歌曲列表（保证 S.songs 有数据供播放恢复）
+    await loadSongs();
+    // 再切换到目标视图
+    if (['hot','history','playlist','admin'].includes(view)) {
+      await switchView(view);
+    }
+  }
+
+  // 恢复播放状态（只恢复 UI，不预加载 stream —— 避免阻塞服务器）
+  // 用户点击播放按钮时才真正加载音频
+  if (saved.songId != null) {
+    const idx = S.songs.findIndex(s => s.id === saved.songId);
+    if (idx >= 0) {
+      S.currentIndex = idx;
+      S._savedTime = saved.time || 0; // 暂存进度，点播时 seek
+      const song = S.songs[idx];
+      setTxt('np-title', song.title || song.filename || '--');
+      setTxt('np-artist', song.artist || T('np.unknown'));
+      document.title = `${song.title || song.filename} — NEUROMIX`;
+      S.isPlaying = false;
+      document.getElementById('btn-play').textContent = '▶';
+      syncMainPlayBtn();
+      renderSongList();
+    }
+  }
+
+  // 恢复滚动位置
+  if (saved.scroll) {
+    requestAnimationFrame(() => {
+      const sl = document.getElementById('song-list-view');
+      if (sl) sl.scrollTop = saved.scroll;
+    });
+  }
+
+  // 恢复背景：登录用户加载自定义背景图，非登录用户恢复电音波形
+  if (S.user) {
+    loadBgData().then(() => applyBg());
+  } else if (localStorage.getItem('nm_viz') === '1') {
+    _vizEnabled = true;
+    document.getElementById('main-bg-layer').style.display = '';
+    // 波形在播放开始后自动启动
+  }
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
